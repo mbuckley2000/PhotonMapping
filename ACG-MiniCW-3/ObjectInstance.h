@@ -1,17 +1,21 @@
 #pragma once
 #include <Eigen\Dense>
+#include "Object.h"
+#include "Ray.h"
 
-using namespace Eigen;
+class Ray;
+class Object;
 
 class ObjectInstance
 {
 public:
-	ObjectInstance();
+	Eigen::Vector3d position;
+	Object *object;
+	cv::Vec3b colour;
+
+	bool rayIntersects(Ray& ray);
+
+	ObjectInstance(Object& object);
 	virtual ~ObjectInstance();
-
-	Vector3f position;
-	Vector3f up;
-	Vector3f rightDir;
-
 };
 
