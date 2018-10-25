@@ -6,10 +6,10 @@ class Sphere :
 	public Object
 {
 public:
-	double radius;
+	float radius;
 
-	bool rayIntersects(Ray& ray, Eigen::Vector3d position);
+	bool rayIntersects(Ray& ray);
 
-	Sphere(double radius);
+	Sphere(float radius);
 	virtual ~Sphere();
 };

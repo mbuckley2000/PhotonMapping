@@ -2,19 +2,19 @@
 #include "Sphere.h"
 #include <Eigen/Dense>
 
-bool Sphere::rayIntersects(Ray & ray, Eigen::Vector3d position)
+bool Sphere::rayIntersects(Ray & ray)
 {
-	Eigen::Vector3d l = ray.direction.normalized();
-	Eigen::Vector3d o = ray.position;
-	Eigen::Vector3d c = position;
-	double r = this->radius;
+	const Eigen::Vector3f l = ray.direction.normalized();
+	const Eigen::Vector3f o = ray.position;
+	const Eigen::Vector3f c = this->position;
+	const float r = this->radius;
 
-	double value = (pow(l.dot(o - c), 2) - (o - c).squaredNorm() + pow(r, 2));
+	const float value = (pow(l.dot(o - c), 2) - (o - c).squaredNorm() + pow(r, 2));
 
 	return (value >= 0);
 }
 
-Sphere::Sphere(double radius)
+Sphere::Sphere(float radius)
 {
 	this->radius = radius;
 }

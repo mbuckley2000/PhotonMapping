@@ -8,17 +8,19 @@ class Mesh :
 	public Object
 {
 public:
-	MatrixXd vertices;
+	MatrixXf vertices;
 	MatrixXi faces;
 	std::vector<Triangle*> triangles;
 
 	void loadFromFile(std::string filename);
-	bool rayIntersects(Ray& ray, Eigen::Vector3d position);
+	bool rayIntersects(Ray& ray);
 	void calculateTriangles();
+	void calculateBoundingSphere();
 
-	Mesh();
+	Mesh(std::string filename);
 	virtual ~Mesh();
 private:
 	bool trianglesCalculated;
+	bool boundingSphereCalculated;
 };
 

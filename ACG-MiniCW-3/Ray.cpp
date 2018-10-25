@@ -1,13 +1,14 @@
 #include "pch.h"
 #include "Ray.h"
+#include "Object.h"
 
 
-bool Ray::intersectsWith(ObjectInstance & objectInstance)
+bool Ray::intersectsWith(Object & object)
 {
-	return objectInstance.rayIntersects(*this);
+	return object.rayIntersects(*this);
 }
 
-Ray::Ray(Eigen::Vector3d position, Eigen::Vector3d direction)
+Ray::Ray(Eigen::Vector3f position, Eigen::Vector3f direction)
 {
 	this->position = position;
 	this->direction = direction;

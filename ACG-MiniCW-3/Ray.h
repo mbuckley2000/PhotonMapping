@@ -1,19 +1,18 @@
 #pragma once
 #include <Eigen/Dense>
-#include "ObjectInstance.h"
+#include "Object.h"
 
-class ObjectInstance;
-class Ray;
+class Object;
 
 class Ray
 {
 public:
-	Eigen::Vector3d position;
-	Eigen::Vector3d direction;
+	Eigen::Vector3f position;
+	Eigen::Vector3f direction;
 
-	bool intersectsWith(ObjectInstance& objectInstance);
+	bool intersectsWith(Object& object);
 
-	Ray(Eigen::Vector3d position, Eigen::Vector3d direction);
+	Ray(Eigen::Vector3f position, Eigen::Vector3f direction);
 	virtual ~Ray();
 };
 

@@ -3,13 +3,18 @@
 #include <Eigen/Dense>
 
 class Ray;
+class Sphere;
 
 class Object
 {
 public:
+	Eigen::Vector3f position;
+	cv::Vec3b colour;
+	Sphere* boundingSphere;
+
 	Object() {}
 	virtual ~Object() {}
 
-	virtual bool rayIntersects(Ray& ray, Eigen::Vector3d position) = 0;
+	virtual bool rayIntersects(Ray& ray) = 0;
 };
 

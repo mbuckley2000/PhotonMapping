@@ -4,23 +4,23 @@
 using namespace Eigen;
 
 struct ImagePlane {
-	Vector2d worldSize;
+	Vector2f worldSize;
 	Vector2i resolution;
 };
 
 class Camera
 {
 public:
-	Vector3d focus; //Focal position
+	Vector3f focus; //Focal position
 
 	//Direction vectors
-	Vector3d up;
-	Vector3d right;
-	Vector3d backward;
+	Vector3f up;
+	Vector3f right;
+	Vector3f backward;
 
-	double focalLength;
+	float focalLength;
 
-	Vector3d calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY);
+	Vector3f calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY);
 	ImagePlane imagePlane;
 	Camera();
 	virtual ~Camera();

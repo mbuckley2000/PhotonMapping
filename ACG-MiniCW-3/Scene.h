@@ -1,14 +1,16 @@
 #pragma once
-#include "ObjectInstance.h"
 #include "Camera.h"
+#include <thread>
+#include "Object.h"
 
 class Scene
 {
 public:
-	std::vector<ObjectInstance*> objectInstances;
+	std::vector<Object*> objects;
 	Camera* camera;
+	cv::Mat_<cv::Vec3b>* target;
 
-	void render(cv::Mat_<cv::Vec3b>& target);
+	void render();
 	Scene();
 	virtual ~Scene();
 };

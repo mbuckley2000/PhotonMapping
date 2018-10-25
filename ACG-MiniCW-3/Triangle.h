@@ -5,11 +5,11 @@ class Triangle :
 	public Object
 {
 public:
-	Eigen::Matrix3d vertices;
+	Eigen::Matrix3f vertices;
 
-	bool rayIntersects(Ray& ray, Eigen::Vector3d position);
+	bool rayIntersects(Ray& ray);
 
-	Triangle(Eigen::Matrix3d vertices);
+	Triangle(Eigen::Matrix3f vertices);
 	virtual ~Triangle();
 };
 
