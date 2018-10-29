@@ -1,6 +1,6 @@
 #pragma once
 #include "Ray.h"
-#include <Eigen/Dense>
+#include <glm/vec3.hpp>
 
 class Ray;
 class Sphere;
@@ -8,13 +8,13 @@ class Sphere;
 class Object
 {
 public:
-	Eigen::Vector3f position;
-	cv::Vec3b colour;
+	glm::vec3 position;
+	glm::vec3 colour;
 	Sphere* boundingSphere;
 
 	Object() {}
 	virtual ~Object() {}
 
-	virtual bool rayIntersects(Ray& ray) = 0;
+	virtual bool rayIntersects(Ray& ray, float& t, float& u, float& v) = 0;
 };
 

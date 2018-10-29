@@ -1,15 +1,22 @@
 #pragma once
 #include "Object.h"
+#include <glm/vec3.hpp>
 
 class Triangle :
 	public Object
 {
 public:
-	Eigen::Matrix3f vertices;
+	bool rayIntersects(Ray& ray, float& t, float& u, float& v);
 
-	bool rayIntersects(Ray& ray);
+	Triangle(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2);
 
-	Triangle(Eigen::Matrix3f vertices);
+	glm::vec3 normal;
+	glm::vec3 point;
+	glm::vec3 edge1;
+	glm::vec3 edge2;
+	glm::vec3 vertex[3];
+
 	virtual ~Triangle();
+private:
+	void calculatePlane();
 };
-

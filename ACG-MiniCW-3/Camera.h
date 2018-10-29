@@ -1,28 +1,26 @@
 #pragma once
-#include <Eigen/Dense>
-
-using namespace Eigen;
+#include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 
 struct ImagePlane {
-	Vector2f worldSize;
-	Vector2i resolution;
+	glm::vec2 worldSize;
+	glm::ivec2 resolution;
 };
 
 class Camera
 {
 public:
-	Vector3f focus; //Focal position
+	glm::vec3 focus; //Focal position
 
 	//Direction vectors
-	Vector3f up;
-	Vector3f right;
-	Vector3f backward;
+	glm::vec3 up;
+	glm::vec3 right;
+	glm::vec3 backward;
 
 	float focalLength;
 
-	Vector3f calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY);
+	glm::vec3 calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY);
 	ImagePlane imagePlane;
 	Camera();
 	virtual ~Camera();
 };
-

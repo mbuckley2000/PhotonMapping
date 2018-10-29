@@ -8,7 +8,7 @@ class Sphere :
 public:
 	float radius;
 
-	bool rayIntersects(Ray& ray);
+	bool rayIntersects(Ray& ray, float& t, float& u, float& v);
 
 	Sphere(float radius);
 	virtual ~Sphere();

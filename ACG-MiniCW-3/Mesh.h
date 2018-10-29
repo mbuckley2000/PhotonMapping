@@ -2,18 +2,17 @@
 #include "Object.h"
 #include <Eigen/Dense>
 #include "Triangle.h"
-using namespace Eigen;
 
 class Mesh :
 	public Object
 {
 public:
-	MatrixXf vertices;
-	MatrixXi faces;
+	Eigen::MatrixXf vertices;
+	Eigen::MatrixXi faces;
 	std::vector<Triangle*> triangles;
 
 	void loadFromFile(std::string filename);
-	bool rayIntersects(Ray& ray);
+	bool rayIntersects(Ray& ray, float& t, float& u, float& v);
 	void calculateTriangles();
 	void calculateBoundingSphere();
 
