@@ -44,6 +44,7 @@ void Mesh::calculateTriangles()
 		this->triangles.push_back(new Triangle(vs));
 	}
 	
+	this->trianglesCalculated = true;
 }
 
 void Mesh::calculateBoundingSphere()
