@@ -8,6 +8,7 @@ using namespace Eigen;
 void Scene::render()
 {
 
+	float t, u, v;
 
 	for (int x = 0; x < camera->imagePlane.resolution(0); x++) {
 		for (int y = 0; y < camera->imagePlane.resolution(1); y++) {
@@ -16,10 +17,20 @@ void Scene::render()
 
 			Ray ray(pixelWorldPos, pixelWorldPos - this->camera->focus); //Pos, dir
 
+			float closestT = INFINITY;
+			Object* closestObj = NULL;
+
 			for (auto const& object : this->objects) {
-				if (ray.intersectsWith(*object)) {
-					(*this->target)(x, y) = object->colour;
+				if (ray.intersectsWith(*object, t, u, v)) {
+					if (t < closestT) {
+						closestT = t;
+						closestObj = object;
+					}
 				}
+			}
+
+			if (closestObj != NULL) {
+				(*this->target)(x, y) = closestObj->colour;
 			}
 		}
 	}

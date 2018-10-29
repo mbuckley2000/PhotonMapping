@@ -15,6 +15,6 @@ public:
 	Object() {}
 	virtual ~Object() {}
 
-	virtual bool rayIntersects(Ray& ray) = 0;
+	virtual bool rayIntersects(Ray & ray, float& t, float& u, float& v) = 0;
 };
 

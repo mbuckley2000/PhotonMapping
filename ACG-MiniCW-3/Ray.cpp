@@ -3,9 +3,9 @@
 #include "Object.h"
 
 
-bool Ray::intersectsWith(Object & object)
+bool Ray::intersectsWith(Object& object, float& t, float& u, float& v)
 {
-	return object.rayIntersects(*this);
+	return object.rayIntersects(*this, t, u, v);
 }
 
 Ray::Ray(Eigen::Vector3f position, Eigen::Vector3f direction)

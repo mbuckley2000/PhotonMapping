@@ -13,7 +13,7 @@ public:
 	std::vector<Triangle*> triangles;
 
 	void loadFromFile(std::string filename);
-	bool rayIntersects(Ray& ray);
+	bool rayIntersects(Ray & ray, float& t, float& u, float& v);
 	void calculateTriangles();
 	void calculateBoundingSphere();
 

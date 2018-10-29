@@ -9,7 +9,7 @@ void Mesh::loadFromFile(std::string filename)
 	igl::readOBJ(filename, this->vertices, this->faces);
 }
 
-bool Mesh::rayIntersects(Ray & ray)
+bool Mesh::rayIntersects(Ray & ray, float& t, float& u, float& v)
 {
 	if (!this->trianglesCalculated) {
 		this->calculateTriangles();
@@ -19,12 +19,28 @@ bool Mesh::rayIntersects(Ray & ray)
 		this->calculateBoundingSphere();
 	}
 
+	float currentT, currentU, currentV;
+	float closestT = INFINITY, closestU, closestV;
+	Triangle* closestTriangle = NULL;
+
 	for (auto const& triangle : this->triangles) {
-		if (triangle->rayIntersects(ray)) {
-			return true;
+		if (triangle->rayIntersects(ray, currentT, currentU, currentV)) {
+			if (currentT < closestT) {
+				closestT = currentT;
+				closestU = currentU;
+				closestV = currentV;
+				closestTriangle = triangle;
+			}
 		}
 	}
 	
+	if (closestTriangle != NULL) {
+		t = closestT;
+		u = closestU;
+		v = closestV;
+		return true;
+	}
+
 	return false;
 }
 
