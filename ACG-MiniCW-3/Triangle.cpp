@@ -57,6 +57,11 @@ bool Triangle::rayIntersects(Ray & ray, float& t, float& u, float& v)
 	return true;
 }
 
+Eigen::Vector3f Triangle::getNormalAt(Eigen::Vector3f position)
+{
+	return this->normal;
+}
+
 Triangle::Triangle(Eigen::Matrix3f vertices)
 {
 	this->vertices = vertices;
@@ -64,6 +69,9 @@ Triangle::Triangle(Eigen::Matrix3f vertices)
 	//Pre-calculate edges for efficiency
 	this->edge1 = vertices.col(1) - vertices.col(0);
 	this->edge2 = vertices.col(2) - vertices.col(0);
+
+	//Pre-calc face normal
+	this->normal = edge1.cross(edge2).normalized();
 }
 
 Triangle::~Triangle()

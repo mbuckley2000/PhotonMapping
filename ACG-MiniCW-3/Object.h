@@ -9,12 +9,16 @@ class Object
 {
 public:
 	Eigen::Vector3f position;
-	cv::Vec3b colour;
+	Eigen::Vector3f colour;
+	float specular;
+	float ambient;
+
 	Sphere* boundingSphere;
 
 	Object() {}
 	virtual ~Object() {}
 
+	virtual Eigen::Vector3f getNormalAt(Eigen::Vector3f position) = 0;
 	virtual bool rayIntersects(Ray & ray, float& t, float& u, float& v) = 0;
 };
 

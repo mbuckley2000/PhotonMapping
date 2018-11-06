@@ -14,6 +14,8 @@ public:
 
 	void loadFromFile(std::string filename);
 	bool rayIntersects(Ray & ray, float& t, float& u, float& v);
+	Eigen::Vector3f getNormalAt(Eigen::Vector3f position);
+
 	void calculateTriangles();
 	void calculateBoundingSphere();
 

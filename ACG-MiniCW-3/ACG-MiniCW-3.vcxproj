@@ -158,6 +158,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="pch.h" />
@@ -170,6 +172,7 @@
   <ItemGroup>
     <ClCompile Include="ACG-MiniCW-3.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DirectionalLight.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -44,6 +44,11 @@ bool Mesh::rayIntersects(Ray & ray, float& t, float& u, float& v)
 	return false;
 }
 
+Eigen::Vector3f Mesh::getNormalAt(Eigen::Vector3f position)
+{
+	return Eigen::Vector3f();
+}
+
 void Mesh::calculateTriangles()
 {
 	this->triangles.empty();

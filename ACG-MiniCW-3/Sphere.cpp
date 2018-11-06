@@ -43,6 +43,11 @@ bool Sphere::rayIntersects(Ray & ray, float& t, float& u, float& v)
 	return true;
 }
 
+Eigen::Vector3f Sphere::getNormalAt(Eigen::Vector3f position)
+{
+	return Eigen::Vector3f(position - this->position).normalized();
+}
+
 Sphere::Sphere(float radius)
 {
 	this->radius = radius;
