@@ -10,7 +10,8 @@ class Object
 public:
 	Eigen::Vector3f position;
 	Eigen::Vector3f colour;
-	float specular;
+	float specularPower;
+	float specularCoeff;
 	float ambient;
 
 	Sphere* boundingSphere;
@@ -20,5 +21,8 @@ public:
 
 	virtual Eigen::Vector3f getNormalAt(Eigen::Vector3f position) = 0;
 	virtual bool rayIntersects(Ray & ray, float& t, float& u, float& v) = 0;
+	Eigen::Vector3f getColour(float u, float v) {
+		return this->colour;
+	};
 };
 

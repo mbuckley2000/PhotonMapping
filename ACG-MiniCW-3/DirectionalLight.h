@@ -8,7 +8,7 @@ class DirectionalLight :
 public:
 	Eigen::Vector3f direction;
 
-	DirectionalLight(Eigen::Vector3f, Eigen::Vector3f direction);
+	DirectionalLight(Eigen::Vector3f direction, Eigen::Vector3f colour);
 
 	Eigen::Vector3f vectorTo(Eigen::Vector3f position);
 

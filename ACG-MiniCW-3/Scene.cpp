@@ -63,32 +63,52 @@ void Scene::render()
 
 			if (closestObj != NULL) {
 
+				//We have a hit
+				const Eigen::Vector3f intersectionPoint = ray.position + (closestT * ray.direction);
+
+				Eigen::Vector3f colour;
+
 				//Ambient
 				const Eigen::Vector3f ambient = closestObj->ambient * light->colour;
 
-				//Diffuse
-				const Eigen::Vector3f intersectionPoint = ray.position + (closestT * ray.direction);
-				const Eigen::Vector3f lightVector = -light->vectorTo(intersectionPoint);
-				const Eigen::Vector3f faceNormal = closestObj->getNormalAt(intersectionPoint);
 
-				Eigen::Vector3f diffuse;
-				diffuse << 0, 0, 0;
 
-				const float dot = max(faceNormal.dot(lightVector), 0);
+				//Check for shadow
+				Ray shadowTest = Ray(intersectionPoint, -light->vectorTo(intersectionPoint));
+				shadowTest.position = shadowTest.position + (0.1 * shadowTest.direction);
+				if (shadowTest.intersectsWith(*this)) {
+					//Shadow
+					colour = ambient.cwiseProduct(closestObj->getColour(u, v));
+				}
+				else {
+					//Diffuse
+					const Eigen::Vector3f lightVector = -light->vectorTo(intersectionPoint);
+					const Eigen::Vector3f faceNormal = closestObj->getNormalAt(intersectionPoint);
 
-				if (dot >= 0) {
-					diffuse = dot * light->colour;
+					Eigen::Vector3f diffuse;
+					diffuse << 0, 0, 0;
+
+					const float dot = max(faceNormal.dot(lightVector), 0);
+
+					if (dot >= 0) {
+						diffuse = dot * light->colour;
+					}
+
+					//Specular
+					const Eigen::Vector3f viewVector = (pixelWorldPos - intersectionPoint).normalized();
+					const Eigen::Vector3f reflectionVector = reflect(-lightVector, faceNormal);
+					const float spec = pow(max(viewVector.dot(reflectionVector), 0), closestObj->specularPower);
+					const Eigen::Vector3f specular = closestObj->specularCoeff * spec * light->colour;
+
+
+					//Colour
+					colour = (ambient + diffuse + specular).cwiseProduct(closestObj->getColour(u, v));
 				}
 
-				//Specular
-				const Eigen::Vector3f viewVector = (pixelWorldPos - intersectionPoint).normalized();
-				const Eigen::Vector3f reflectionVector = reflect(-lightVector, faceNormal);
-				float spec = pow(max(viewVector.dot(reflectionVector), 0), 32);
-				const Eigen::Vector3f specular = closestObj->specular * spec * light->colour;
+				
 
-				const Eigen::Vector3f colour = (ambient + diffuse + specular).cwiseProduct(closestObj->colour);
 
-				(*this->target)(x, y) = toRGB(colour);
+				(*this->target)(y, x) = toRGB(colour);
 			}
 		}
 	}

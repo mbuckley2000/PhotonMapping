@@ -2,7 +2,7 @@
 #include "DirectionalLight.h"
 #include <Eigen/Dense>
 
-DirectionalLight::DirectionalLight(Eigen::Vector3f colour, Eigen::Vector3f direction) : Light(colour)
+DirectionalLight::DirectionalLight(Eigen::Vector3f direction, Eigen::Vector3f colour) : Light(colour)
 {
 	this->direction = direction.normalized();
 }

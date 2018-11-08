@@ -4,6 +4,8 @@
 #include "Object.h"
 #include "Light.h"
 
+class Object;
+
 class Scene
 {
 public:
