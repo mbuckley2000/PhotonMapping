@@ -75,7 +75,7 @@ void Scene::render()
 
 				//Check for shadow
 				Ray shadowTest = Ray(intersectionPoint, -light->vectorTo(intersectionPoint));
-				shadowTest.position = shadowTest.position + (0.1 * shadowTest.direction);
+				shadowTest.position = shadowTest.position + (0.000001 * shadowTest.direction);
 				if (shadowTest.intersectsWith(*this)) {
 					//Shadow
 					colour = ambient.cwiseProduct(closestObj->getColour(u, v));
