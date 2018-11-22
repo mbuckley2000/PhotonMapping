@@ -1,18 +1,18 @@
 #pragma once
 #include "Object.h"
-#include <Eigen/Dense>
+#include "Vectors.h"
 
 class Plane :
 	public Object
 {
 public:
-	Eigen::Vector3f normal;
+	Vec3 normal;
 	float offset; //Distance from origin
 
-	bool rayIntersects(Ray & ray, float& t, float& u, float& v);
-	Eigen::Vector3f getNormalAt(Eigen::Vector3f position);
+	bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v);
+	Vec3 getNormalAt(Vec3 position);
 
-	Eigen::Vector3f getColour(float u, float v);
+	Vec3 getColour(float u, float v);
 
 	Plane();
 	virtual ~Plane();

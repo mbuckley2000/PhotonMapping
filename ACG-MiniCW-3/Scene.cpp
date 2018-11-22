@@ -1,29 +1,10 @@
 #include "pch.h"
 #include "Scene.h"
-#include <Eigen/Dense>
 #include "Ray.h"
+#include "Vectors.h"
+#include "Common.h"
 
-using namespace Eigen;
-
-float max(float a, float b) {
-	if (a > b) {
-		return a;
-	}
-	else {
-		return b;
-	}
-}
-
-float min(float a, float b) {
-	if (a < b) {
-		return a;
-	}
-	else {
-		return b;
-	}
-}
-
-cv::Vec3b toRGB(Eigen::Vector3f v) {
+cv::Vec3b toRGB(Vec3 v) {
 	for (int i = 0; i < 3; i++) {
 		v(i) = max(v(i), 0);
 		v(i) = min(v(i), 1);
@@ -32,11 +13,6 @@ cv::Vec3b toRGB(Eigen::Vector3f v) {
 	return cv::Vec3b(v(0) * 255, v(1) * 255, v(2) * 255);
 }
 
-Eigen::Vector3f reflect(Eigen::Vector3f vec, Eigen::Vector3f normal) {
-	return vec - (2 * vec.dot(normal) * normal);
-}
-
-
 void Scene::render()
 {
 
@@ -44,48 +20,35 @@ void Scene::render()
 
 	for (int x = 0; x < camera->imagePlane.resolution(0); x++) {
 		for (int y = 0; y < camera->imagePlane.resolution(1); y++) {
-
-			const Vector3f pixelWorldPos = this->camera->calculatePixelWorldPos(x, y);
+			const Vec3 pixelWorldPos = this->camera->calculatePixelWorldPos(x, y);
 
 			Ray ray(pixelWorldPos, pixelWorldPos - this->camera->focus); //Pos, dir
 
-			float closestT = INFINITY;
-			Object* closestObj = NULL;
 
-			for (auto const& object : this->objects) {
-				if (ray.intersectsWith(*object, t, u, v)) {
-					if (t < closestT) {
-						closestT = t;
-						closestObj = object;
-					}
-				}
-			}
+			Object* hitObj = NULL;
 
-			if (closestObj != NULL) {
-
+			if (ray.intersectsWith(*this, hitObj, t, u, v)) {
 				//We have a hit
-				const Eigen::Vector3f intersectionPoint = ray.position + (closestT * ray.direction);
+				const Vec3 intersectionPoint = ray.position + (t * ray.direction);
 
-				Eigen::Vector3f colour;
+				Vec3 colour;
 
 				//Ambient
-				const Eigen::Vector3f ambient = closestObj->ambient * light->colour;
-
-
+				const Vec3 ambient = hitObj->ambient * light->colour;
 
 				//Check for shadow
 				Ray shadowTest = Ray(intersectionPoint, -light->vectorTo(intersectionPoint));
 				shadowTest.position = shadowTest.position + (0.000001 * shadowTest.direction);
 				if (shadowTest.intersectsWith(*this)) {
 					//Shadow
-					colour = ambient.cwiseProduct(closestObj->getColour(u, v));
+					colour = ambient.cwiseProduct(hitObj->getColour(u, v));
 				}
 				else {
 					//Diffuse
-					const Eigen::Vector3f lightVector = -light->vectorTo(intersectionPoint);
-					const Eigen::Vector3f faceNormal = closestObj->getNormalAt(intersectionPoint);
+					const Vec3 lightVector = -light->vectorTo(intersectionPoint);
+					const Vec3 faceNormal = hitObj->getNormalAt(intersectionPoint);
 
-					Eigen::Vector3f diffuse;
+					Vec3 diffuse;
 					diffuse << 0, 0, 0;
 
 					const float dot = max(faceNormal.dot(lightVector), 0);
@@ -95,18 +58,15 @@ void Scene::render()
 					}
 
 					//Specular
-					const Eigen::Vector3f viewVector = (pixelWorldPos - intersectionPoint).normalized();
-					const Eigen::Vector3f reflectionVector = reflect(-lightVector, faceNormal);
-					const float spec = pow(max(viewVector.dot(reflectionVector), 0), closestObj->specularPower);
-					const Eigen::Vector3f specular = closestObj->specularCoeff * spec * light->colour;
+					const Vec3 viewVector = (pixelWorldPos - intersectionPoint).normalized();
+					const Vec3 reflectionVector = reflectVector(-lightVector, faceNormal);
+					const float spec = pow(max(viewVector.dot(reflectionVector), 0), hitObj->specularPower);
+					const Vec3 specular = hitObj->specularCoeff * spec * light->colour;
 
 
 					//Colour
-					colour = (ambient + diffuse + specular).cwiseProduct(closestObj->getColour(u, v));
+					colour = (ambient + diffuse + specular).cwiseProduct(hitObj->getColour(u, v));
 				}
-
-				
-
 
 				(*this->target)(y, x) = toRGB(colour);
 			}

@@ -1,16 +1,16 @@
 #pragma once
 #include "Light.h"
-#include <Eigen/Dense>
+#include "Vectors.h"
 
 class DirectionalLight :
 	public Light
 {
 public:
-	Eigen::Vector3f direction;
+	Vec3 direction;
 
-	DirectionalLight(Eigen::Vector3f direction, Eigen::Vector3f colour);
+	DirectionalLight(Vec3 direction, Vec3 colour);
 
-	Eigen::Vector3f vectorTo(Eigen::Vector3f position);
+	Vec3 vectorTo(Vec3 position);
 
 	virtual ~DirectionalLight();
 };

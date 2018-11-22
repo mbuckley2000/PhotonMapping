@@ -1,22 +1,13 @@
 #include "pch.h"
 #include "Triangle.h"
 
-using namespace Eigen;
-
-const double EPSILON = 0.0000001;
-const bool CULLING = true;
-
 //https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-bool Triangle::rayIntersects(Ray & ray, float& t, float& u, float& v)
+bool Triangle::rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v)
 {
-	//Triangle ray intersection
-	const Vector3f rayPos = ray.position;
-	const Vector3f rayDir = ray.direction;
-	const Vector3f v0 = this->vertices.col(0);
-	const Vector3f edge1 = this->edge1;
-	const Vector3f edge2 = this->edge2;
+	#define EPSILON 0.0000001
+	#define CULLING true
 
-	const Vector3f pVec = rayDir.cross(edge2);
+	const Vec3 pVec = ray.direction.cross(this->edge2);
 
 	const float det = edge1.dot(pVec);
 
@@ -36,7 +27,7 @@ bool Triangle::rayIntersects(Ray & ray, float& t, float& u, float& v)
 
 	float detInv = 1 / det;
 
-	const Vector3f tVec = rayPos - v0;
+	const Vec3 tVec = ray.position - this->vertices.col(0);
 
 	u = tVec.dot(pVec) * detInv;
 
@@ -44,25 +35,32 @@ bool Triangle::rayIntersects(Ray & ray, float& t, float& u, float& v)
 		return false;
 	}
 
-	const Vector3f qvec = tVec.cross(edge1);
+	const Vec3 qvec = tVec.cross(this->edge1);
 
-	v = rayDir.dot(qvec) * detInv;
+	v = ray.direction.dot(qvec) * detInv;
 
 	if (v < 0 || u + v > 1) {
 		return false;
 	}
 
-	t = edge2.dot(qvec) * detInv;
+	t = this->edge2.dot(qvec) * detInv;
+
+	o = this;
 
 	return true;
 }
 
-Eigen::Vector3f Triangle::getNormalAt(Eigen::Vector3f position)
+Vec3 Triangle::getNormalAt(Vec3 position)
 {
 	return this->normal;
 }
 
-Triangle::Triangle(Eigen::Matrix3f vertices)
+Vec3 Triangle::getVertex(int vertex)
+{
+	return Vec3(this->vertices.col(vertex));
+}
+
+Triangle::Triangle(Mat3 vertices)
 {
 	this->vertices = vertices;
 
@@ -77,3 +75,4 @@ Triangle::Triangle(Eigen::Matrix3f vertices)
 Triangle::~Triangle()
 {
 }
+

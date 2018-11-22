@@ -1,16 +1,19 @@
 #pragma once
 #include "Object.h"
-#include <Eigen/Dense>
+#include "Vectors.h"
 
 class Sphere :
 	public Object
 {
 public:
-	float radius;
-
-	bool rayIntersects(Ray & ray, float& t, float& u, float& v);
-	Eigen::Vector3f getNormalAt(Eigen::Vector3f position);
-
 	Sphere(float radius);
 	virtual ~Sphere();
+
+	bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v);
+
+	Vec3 getNormalAt(Vec3 position);
+
+
+private:
+	float radius;
 };

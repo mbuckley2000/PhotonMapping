@@ -1,13 +1,12 @@
 #include "pch.h"
 #include "DirectionalLight.h"
-#include <Eigen/Dense>
 
-DirectionalLight::DirectionalLight(Eigen::Vector3f direction, Eigen::Vector3f colour) : Light(colour)
+DirectionalLight::DirectionalLight(Vec3 direction, Vec3 colour) : Light(colour)
 {
 	this->direction = direction.normalized();
 }
 
-Eigen::Vector3f DirectionalLight::vectorTo(Eigen::Vector3f position)
+Vec3 DirectionalLight::vectorTo(Vec3 position)
 {
 	return this->direction;
 }

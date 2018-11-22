@@ -1,28 +1,33 @@
 #pragma once
 #include "Object.h"
-#include <Eigen/Dense>
+#include "Vectors.h"
 #include "Triangle.h"
-using namespace Eigen;
+#include "Box.h"
 
 class Mesh :
 	public Object
 {
 public:
-	MatrixXf vertices;
-	MatrixXi faces;
+	Eigen::MatrixXf vertices;
+	Eigen::MatrixXi faces;
+
 	std::vector<Triangle*> triangles;
 
 	void loadFromFile(std::string filename);
-	bool rayIntersects(Ray & ray, float& t, float& u, float& v);
-	Eigen::Vector3f getNormalAt(Eigen::Vector3f position);
+	bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v);
+
+	Vec3 getNormalAt(Vec3 position);
 
 	void calculateTriangles();
-	void calculateBoundingSphere();
 
 	Mesh(std::string filename);
 	virtual ~Mesh();
+
+
 private:
 	bool trianglesCalculated;
-	bool boundingSphereCalculated;
+	bool boundingBoxCalculated;
+	void calculateBoundingBox();
+	Box boundingBox;
 };
 

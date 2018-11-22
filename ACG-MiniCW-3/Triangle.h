@@ -1,22 +1,21 @@
 #pragma once
 #include "Object.h"
+#include "Vectors.h"
 
 class Triangle :
 	public Object
 {
 public:
-	Eigen::Matrix3f vertices;
-
-	bool rayIntersects(Ray & ray, float& t, float& u, float& v);
-	Eigen::Vector3f getNormalAt(Eigen::Vector3f position);
-
-	Triangle(Eigen::Matrix3f vertices);
+	Triangle(Mat3 vertices);
 	virtual ~Triangle();
 
+	bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v);
+	Vec3 getNormalAt(Vec3 position);	
+	Vec3 getVertex(int vertex);
 private:
-	Eigen::Vector3f edge1;
-	Eigen::Vector3f edge2;
-	Eigen::Vector3f normal;
-
+	Vec3 edge1;
+	Vec3 edge2;
+	Vec3 normal;
+	Mat3 vertices;
 };
 

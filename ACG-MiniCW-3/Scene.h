@@ -1,8 +1,10 @@
 #pragma once
 #include "Camera.h"
-#include <thread>
 #include "Object.h"
 #include "Light.h"
+#include <vector>
+#include <opencv2/core.hpp>
+
 
 class Object;
 

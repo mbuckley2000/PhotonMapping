@@ -3,7 +3,6 @@
 #include <Eigen/Dense>
 
 class Ray;
-class Sphere;
 
 class Object
 {
@@ -14,13 +13,11 @@ public:
 	float specularCoeff;
 	float ambient;
 
-	Sphere* boundingSphere;
-
 	Object() {}
 	virtual ~Object() {}
 
 	virtual Eigen::Vector3f getNormalAt(Eigen::Vector3f position) = 0;
-	virtual bool rayIntersects(Ray & ray, float& t, float& u, float& v) = 0;
+	virtual bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v) = 0;
 	Eigen::Vector3f getColour(float u, float v) {
 		return this->colour;
 	};

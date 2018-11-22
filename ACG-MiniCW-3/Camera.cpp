@@ -5,7 +5,7 @@
 Calculates the world position of a pixel on the image plane of the camera
 Lecture 4
 */
-Vector3f Camera::calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY)
+Vec3 Camera::calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY)
 {
 	const unsigned int i = pixelX;
 	const unsigned int j = pixelY;
@@ -14,11 +14,11 @@ Vector3f Camera::calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY
 	const unsigned int nW = this->imagePlane.resolution(0);
 	const unsigned int nH = this->imagePlane.resolution(1);
 
-	const Vector3f e = this->focus;
+	const Vec3 e = this->focus;
 	const float d = this->focalLength;
-	const Vector3f w = this->backward;
-	const Vector3f u = this->up;
-	const Vector3f v = this->right;
+	const Vec3 w = this->backward;
+	const Vec3 u = this->up;
+	const Vec3 v = this->right;
 
 
 	const float r = W * (((j - 0.5) / nW) - 0.5);

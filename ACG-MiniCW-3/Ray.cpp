@@ -1,37 +1,40 @@
 #include "pch.h"
 #include "Ray.h"
 #include "Object.h"
-
-bool Ray::intersectsWith(Object& object, float& t, float& u, float& v)
+#include "Sphere.h"
+bool Ray::intersectsWith(Object& object, Object*& hitObj, float& t, float& u, float& v)
 {
-	return object.rayIntersects(*this, t, u, v);
+	return object.rayIntersects(*this, hitObj, t, u, v);
 }
 
 bool Ray::intersectsWith(Scene & scene)
 {
-	Object* o = (Object*)malloc(sizeof(o));
+	Object* o = NULL;// (Object*)malloc(sizeof(o));
 	float t = INFINITY;
 	float u, v;
 	const bool hit = this->intersectsWith(scene, o, t, u, v);
 
-	free(o);
+	//free(o);
 
 	return hit;
 }
 
-bool Ray::intersectsWith(Scene & scene, Object* closestObject, float & t, float & u, float & v)
+bool Ray::intersectsWith(Scene & scene, Object*& closestObjectPtr, float & t, float & u, float & v)
 {
 	bool found = false;
 	float tempT, tempU, tempV;
+	Object* hitObj = NULL;
+
+	t = INFINITY;
 
 	for (auto const& object : scene.objects) {
-		if (this->intersectsWith(*object, tempT, tempU, tempV)) {
+		if (this->intersectsWith(*object, hitObj, tempT, tempU, tempV)) {
 			if (tempT < t && tempT > 0) {
 				found = true;
 				t = tempT;
 				u = tempU;
 				v = tempV;
-				closestObject = object;
+				closestObjectPtr = hitObj;
 			}
 		}
 	}
@@ -39,7 +42,7 @@ bool Ray::intersectsWith(Scene & scene, Object* closestObject, float & t, float 
 	return found;
 }
 
-Ray::Ray(Eigen::Vector3f position, Eigen::Vector3f direction)
+Ray::Ray(Vec3 position, Vec3 direction)
 {
 	this->position = position;
 	this->direction = direction;

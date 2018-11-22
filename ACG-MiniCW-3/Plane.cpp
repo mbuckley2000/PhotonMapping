@@ -3,39 +3,40 @@
 
 #define EPSILON 0.00001
 
-bool Plane::rayIntersects(Ray & ray, float & t, float & u, float & v)
+bool Plane::rayIntersects(Ray & ray, Object*& o, float & t, float & u, float & v)
 {
 	const float denominator = ray.direction.dot(this->normal);
 
-	if (denominator > EPSILON) {
-		//Intersection
-		t = -(ray.position.dot(this->normal) + this->offset) / denominator;
-
-		//Get point
-		const Eigen::Vector3f intersectionPoint = ray.position + (t * ray.direction);
-		
-		//Get centre of plane
-		const Eigen::Vector3f centre = this->normal * this->offset;
-		
-		//Get difference between the two
-		Eigen::Vector3f diff = intersectionPoint - centre;
-		diff = diff / diff(2);
-
-		u = diff(0);
-		v = diff(1);
-
-		return true;
+	if (denominator < EPSILON) {
+		return false;
 	}
 
-	return false;
+	o = this;
 
+	//Intersection
+	t = -(ray.position.dot(this->normal) + this->offset) / denominator;
+
+	//Get point
+	const Vec3 intersectionPoint = ray.position + (t * ray.direction);
+		
+	//Get centre of plane
+	const Vec3 centre = this->normal * this->offset;
+		
+	//Get difference between the two
+	Vec3 diff = intersectionPoint - centre;
+	diff = diff / diff(2);
+
+	u = diff(0);
+	v = diff(1);
+
+	return true;
 
 	/*
 
 	float denominator = this->normal.dot(ray.direction);
 
     if (denominator > EPSILON) {
-        const Eigen::Vector3f difference = this->centre - ray.position;
+        const Vec3 difference = this->centre - ray.position;
         float tempT = difference.dot(this->normal) / denominator;
 		t = tempT;
 		return true;
@@ -50,12 +51,12 @@ bool Plane::rayIntersects(Ray & ray, float & t, float & u, float & v)
 	*/
 }
 
-Eigen::Vector3f Plane::getNormalAt(Eigen::Vector3f position)
+Vec3 Plane::getNormalAt(Vec3 position)
 {
 	return this->normal;
 }
 
-Eigen::Vector3f Plane::getColour(float u, float v) {
+Vec3 Plane::getColour(float u, float v) {
 	const int uI = u;
 	const float dimmingFactor = 0.1;
 

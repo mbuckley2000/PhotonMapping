@@ -1,23 +1,23 @@
 #include "pch.h"
 #include "Sphere.h"
-#include <Eigen/Dense>
 
 //https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
-bool Sphere::rayIntersects(Ray & ray, float& t, float& u, float& v)
+bool Sphere::rayIntersects(Ray & ray, Object*& hitObject, float& t, float& u, float& v)
 {
-	const Eigen::Vector3f l = ray.direction.normalized();
-	const Eigen::Vector3f o = ray.position;
-	const Eigen::Vector3f c = this->position;
-	const float r = this->radius;
+	const Vec3 direction = ray.direction.normalized();
+	const Vec3 origin = ray.position;
+	const Vec3 centre = this->position;
 
-	const float value = (pow(l.dot(o - c), 2) - (o - c).squaredNorm() + pow(r, 2));
+	const float value = (pow(direction.dot(origin - centre), 2) - (origin - centre).squaredNorm() + pow(this->radius, 2));
 	t = 1;
 	if (value < 0) {
 		//No solutions exist
 		return false;
 	}
 
-	float part1 = -(l.dot(o - c));
+	hitObject = this;
+
+	float part1 = -(direction.dot(origin - centre));
 
 	if (value > 0) {
 		//Two solutions exists
@@ -43,9 +43,9 @@ bool Sphere::rayIntersects(Ray & ray, float& t, float& u, float& v)
 	return true;
 }
 
-Eigen::Vector3f Sphere::getNormalAt(Eigen::Vector3f position)
+Vec3 Sphere::getNormalAt(Vec3 position)
 {
-	return Eigen::Vector3f(position - this->position).normalized();
+	return Vec3(position - this->position).normalized();
 }
 
 Sphere::Sphere(float radius)
@@ -56,3 +56,5 @@ Sphere::Sphere(float radius)
 Sphere::~Sphere()
 {
 }
+
+
