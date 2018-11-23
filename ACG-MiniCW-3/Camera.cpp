@@ -23,7 +23,7 @@ Vec3 Camera::calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY)
 
 	const float r = W * (((j - 0.5) / nW) - 0.5);
 	const float b = H * (((i - 0.5) / nH) - 0.5);
-	return( e + (d*-w) + (r*u) - (b*v));
+	return( e + (d*-w) - (r*u) + (b*v));
 }
 
 Camera::Camera()

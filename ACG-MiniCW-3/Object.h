@@ -12,6 +12,7 @@ public:
 	float specularPower;
 	float specularCoeff;
 	float ambient;
+	bool shadow = false;
 
 	Object() {}
 	virtual ~Object() {}

@@ -6,6 +6,7 @@ class Triangle :
 	public Object
 {
 public:
+	Triangle(Vec3 v0, Vec3 v1, Vec3 v2);
 	Triangle(Mat3 vertices);
 	virtual ~Triangle();
 

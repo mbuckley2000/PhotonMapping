@@ -1,14 +1,14 @@
 #pragma once
-#include <Eigen/Dense>;
+#include "Vectors.h";
 
 class Light
 {
 public:
-	Eigen::Vector3f colour;
+	Vec3 colour;
 
-	virtual Eigen::Vector3f vectorTo(Eigen::Vector3f position) = 0;
+	virtual Vec3 vectorTo(Vec3 position) = 0;
 
-	Light(Eigen::Vector3f colour) {
+	Light(Vec3 colour) {
 		this->colour = colour;
 	};
 

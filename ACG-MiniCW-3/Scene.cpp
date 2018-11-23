@@ -10,7 +10,7 @@ cv::Vec3b toRGB(Vec3 v) {
 		v(i) = min(v(i), 1);
 	}
 
-	return cv::Vec3b(v(0) * 255, v(1) * 255, v(2) * 255);
+	return cv::Vec3b(v(2) * 255, v(1) * 255, v(0) * 255);
 }
 
 void Scene::render()
@@ -35,15 +35,26 @@ void Scene::render()
 
 				//Ambient
 				const Vec3 ambient = hitObj->ambient * light->colour;
-
+				
+				int num_rays = 16;
+				int hitCount = 0;
+				bool shadowed = false;
 				//Check for shadow
-				Ray shadowTest = Ray(intersectionPoint, -light->vectorTo(intersectionPoint));
-				shadowTest.position = shadowTest.position + (0.000001 * shadowTest.direction);
-				if (shadowTest.intersectsWith(*this)) {
+				if (hitObj->shadow) {
+					for (int i = 0; i < num_rays; i++) {
+						Ray shadowTest = Ray(intersectionPoint, -light->vectorTo(intersectionPoint));
+						shadowTest.position = shadowTest.position + (0.000001 * shadowTest.direction);
+						if (shadowTest.intersectsWith(*this)) {
+							hitCount++;
+							shadowed = true;
+						}
+					}
+
 					//Shadow
-					colour = ambient.cwiseProduct(hitObj->getColour(u, v));
+					//colour = ambient.cwiseProduct(hitObj->getColour(u, v));
 				}
-				else {
+				
+				
 					//Diffuse
 					const Vec3 lightVector = -light->vectorTo(intersectionPoint);
 					const Vec3 faceNormal = hitObj->getNormalAt(intersectionPoint);
@@ -66,7 +77,10 @@ void Scene::render()
 
 					//Colour
 					colour = (ambient + diffuse + specular).cwiseProduct(hitObj->getColour(u, v));
-				}
+					
+					if (shadowed) {
+						colour *= 0.4*(hitCount/num_rays);
+					}
 
 				(*this->target)(y, x) = toRGB(colour);
 			}

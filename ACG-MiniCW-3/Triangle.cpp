@@ -60,6 +60,20 @@ Vec3 Triangle::getVertex(int vertex)
 	return Vec3(this->vertices.col(vertex));
 }
 
+Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2)
+{
+	this->vertices.col(0) = v0;
+	this->vertices.col(1) = v1;
+	this->vertices.col(2) = v2;
+
+	//Pre-calculate edges for efficiency
+	this->edge1 = vertices.col(1) - vertices.col(0);
+	this->edge2 = vertices.col(2) - vertices.col(0);
+
+	//Pre-calc face normal
+	this->normal = edge1.cross(edge2).normalized();
+}
+
 Triangle::Triangle(Mat3 vertices)
 {
 	this->vertices = vertices;

@@ -69,7 +69,7 @@ void Mesh::calculateTriangles()
 		Matrix3f vs;
 
 		for (int v = 0; v < 3; v++) {
-			vs.col(v) = this->vertices.row(face(v)).transpose() + this->position;
+			vs.col(v) = (this->vertices.row(face(v)).transpose() * this->scale) + this->position;
 		}
 
 		Triangle* t = new Triangle(vs);

@@ -10,7 +10,7 @@ class Mesh :
 public:
 	Eigen::MatrixXf vertices;
 	Eigen::MatrixXi faces;
-
+	float scale;
 	std::vector<Triangle*> triangles;
 
 	void loadFromFile(std::string filename);
@@ -19,6 +19,7 @@ public:
 	Vec3 getNormalAt(Vec3 position);
 
 	void calculateTriangles();
+
 
 	Mesh(std::string filename);
 	virtual ~Mesh();
