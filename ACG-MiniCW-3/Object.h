@@ -1,14 +1,14 @@
 #pragma once
 #include "Ray.h"
-#include <Eigen/Dense>
+#include "Vectors.h"
 
 class Ray;
 
 class Object
 {
 public:
-	Eigen::Vector3f position;
-	Eigen::Vector3f colour;
+	Vec3 position;
+	Vec3 colour;
 	float specularPower;
 	float specularCoeff;
 	float ambient;
@@ -17,9 +17,9 @@ public:
 	Object() {}
 	virtual ~Object() {}
 
-	virtual Eigen::Vector3f getNormalAt(Eigen::Vector3f position) = 0;
+	virtual Vec3 getNormalAt(Vec3 position) = 0;
 	virtual bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v) = 0;
-	Eigen::Vector3f getColour(float u, float v) {
+	Vec3 getColour(float u, float v) {
 		return this->colour;
 	};
 };

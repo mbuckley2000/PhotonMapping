@@ -7,10 +7,10 @@ bool Ray::intersectsWith(Object& object, Object*& hitObj, float& t, float& u, fl
 	return object.rayIntersects(*this, hitObj, t, u, v);
 }
 
-bool Ray::intersectsWith(Scene & scene)
+bool Ray::intersectsWith(Scene & scene, float& t)
 {
 	Object* o = NULL;// (Object*)malloc(sizeof(o));
-	float t = INFINITY;
+	t = INFINITY;
 	float u, v;
 	const bool hit = this->intersectsWith(scene, o, t, u, v);
 

@@ -24,5 +24,12 @@ Vec3 SquareLight::vectorTo(Vec3 position)
 	point(0) += xRand;
 	point(2) += zRand;
 
-	return position - point;
+	this->lastPoint = point;
+
+	return (position - point).normalized();
+}
+
+float SquareLight::getDistanceFrom(Vec3 position)
+{
+	return (this->lastPoint - position).norm();
 }

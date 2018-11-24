@@ -36,17 +36,20 @@ void Scene::render()
 				//Ambient
 				const Vec3 ambient = hitObj->ambient * light->colour;
 				
-				int num_rays = 16;
+				int num_rays = 1;
 				int hitCount = 0;
 				bool shadowed = false;
 				//Check for shadow
 				if (hitObj->shadow) {
 					for (int i = 0; i < num_rays; i++) {
 						Ray shadowTest = Ray(intersectionPoint, -light->vectorTo(intersectionPoint));
-						shadowTest.position = shadowTest.position + (0.000001 * shadowTest.direction);
-						if (shadowTest.intersectsWith(*this)) {
-							hitCount++;
-							shadowed = true;
+						//shadowTest.position = shadowTest.position + (0.000001 * shadowTest.direction);
+						float shadowT;
+						if (shadowTest.intersectsWith(*this, shadowT)) {
+							if (shadowT <= (light->getDistanceFrom(intersectionPoint))) {
+								hitCount++;
+								shadowed = true;
+							}
 						}
 					}
 
@@ -79,7 +82,8 @@ void Scene::render()
 					colour = (ambient + diffuse + specular).cwiseProduct(hitObj->getColour(u, v));
 					
 					if (shadowed) {
-						colour *= 0.4*(hitCount/num_rays);
+						const float maxLoss = 1 - hitObj->ambient;
+						colour *= 1 - (maxLoss*hitCount/num_rays);
 					}
 
 				(*this->target)(y, x) = toRGB(colour);

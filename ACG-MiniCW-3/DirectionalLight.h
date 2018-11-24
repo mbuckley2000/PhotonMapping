@@ -13,5 +13,11 @@ public:
 	Vec3 vectorTo(Vec3 position);
 
 	virtual ~DirectionalLight();
+
+
+
+	// Inherited via Light
+	virtual float getDistanceFrom(Vec3 position) override;
+
 };
 

@@ -1,17 +1,15 @@
 #pragma once
 #include "Light.h"
 #include "Vectors.h"
-
-class SquareLight :
+class PointLight :
 	public Light
 {
 public:
-	Vec3 position;
-	Vec3 normal;
-	float size;
+	PointLight(Vec3 position, Vec3 colour);
+	virtual ~PointLight();
 
-	SquareLight(Vec3 colour, Vec3 position, Vec3 normal, float size);
-	virtual ~SquareLight();
+	Vec3 position;
+	Vec3 colour;
 
 	// Inherited via Light
 	virtual Vec3 vectorTo(Vec3 position) override;
@@ -19,7 +17,5 @@ public:
 	// Inherited via Light
 	virtual float getDistanceFrom(Vec3 position) override;
 
-private:
-	Vec3 lastPoint;
 };
 
