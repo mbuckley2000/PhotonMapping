@@ -20,3 +20,8 @@ float PointLight::getDistanceFrom(Vec3 position)
 	return (position - this->position).norm();
 }
 
+Vec3 PointLight::getPosition()
+{
+	return this->position;
+}
+

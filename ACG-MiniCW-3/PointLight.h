@@ -17,5 +17,9 @@ public:
 	// Inherited via Light
 	virtual float getDistanceFrom(Vec3 position) override;
 
+
+	// Inherited via Light
+	virtual Vec3 getPosition() override;
+
 };
 

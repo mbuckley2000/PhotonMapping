@@ -21,3 +21,8 @@ float DirectionalLight::getDistanceFrom(Vec3 position)
 	return INFINITY;
 }
 
+Vec3 DirectionalLight::getPosition()
+{
+	return Vec3(INFINITY, INFINITY, INFINITY).cwiseProduct(-this->direction);
+}
+

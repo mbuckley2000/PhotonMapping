@@ -14,6 +14,20 @@ SquareLight::~SquareLight()
 
 Vec3 SquareLight::vectorTo(Vec3 position)
 {
+	
+	const Vec3 point = this->getPosition();
+	this->lastPoint = point;
+
+	return (position - point).normalized();
+}
+
+float SquareLight::getDistanceFrom(Vec3 position)
+{
+	return (this->lastPoint - position).norm();
+}
+
+Vec3 SquareLight::getPosition()
+{
 	//Get random point in the square
 	//Direction vector of the plane
 	const float halfSize = this->size / 2;
@@ -24,12 +38,5 @@ Vec3 SquareLight::vectorTo(Vec3 position)
 	point(0) += xRand;
 	point(2) += zRand;
 
-	this->lastPoint = point;
-
-	return (position - point).normalized();
-}
-
-float SquareLight::getDistanceFrom(Vec3 position)
-{
-	return (this->lastPoint - position).norm();
+	return point;
 }

@@ -21,5 +21,8 @@ public:
 
 private:
 	Vec3 lastPoint;
+
+	// Inherited via Light
+	virtual Vec3 getPosition() override;
 };
 
