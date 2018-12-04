@@ -34,7 +34,7 @@ void Scene::render()
 				Vec3 colour;
 
 				//Ambient
-				const Vec3 ambient = hitObj->ambient * light->colour;
+				const Vec3 ambient = Vec3(0, 0, 0);// hitObj->ambient * light->colour;
 				
 				int num_rays = 1;
 				int hitCount = 0;
@@ -74,15 +74,15 @@ void Scene::render()
 					//Specular
 					const Vec3 viewVector = (pixelWorldPos - intersectionPoint).normalized();
 					const Vec3 reflectionVector = reflectVector(-lightVector, faceNormal);
-					const float spec = pow(max(viewVector.dot(reflectionVector), 0), hitObj->specularPower);
-					const Vec3 specular = hitObj->specularCoeff * spec * light->colour;
+					const float spec = pow(max(viewVector.dot(reflectionVector), 0), hitObj->material.specularPower);
+					const Vec3 specular = hitObj->material.specularProbability * spec * light->colour;
 
 
 					//Colour
 					colour = (ambient + diffuse + specular).cwiseProduct(hitObj->getColour(u, v));
 					
 					if (shadowed) {
-						const float maxLoss = 1 - hitObj->ambient;
+						const float maxLoss = 0.5;//1 - hitObj->ambient;
 						colour *= 1 - (maxLoss*hitCount/num_rays);
 					}
 

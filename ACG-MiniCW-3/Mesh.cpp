@@ -73,10 +73,7 @@ void Mesh::calculateTriangles()
 		}
 
 		Triangle* t = new Triangle(vs);
-		t->colour = this->colour;
-		t->ambient = this->ambient;
-		t->specularCoeff = this->specularCoeff;
-		t->specularPower = this->specularPower;
+		t->material = this->material;
 
 		this->triangles.push_back(t);
 	}

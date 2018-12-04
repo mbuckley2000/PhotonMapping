@@ -2,13 +2,9 @@
 #include "Vectors.h"
 #include "Light.h"
 #include "Ray.h"
+#include "Box.h"
 #include <vector>
-
-typedef struct Photon {
-	Vec3 position;
-	Vec3 flux;
-	Vec3 incomingAngle;
-} Photon;
+#include "Photon.h"
 
 class PhotonMap
 {
@@ -24,10 +20,8 @@ public:
 private:
 	int numPhotons;
 	Scene* scene;
-
-
 	Ray generatePhotonRay(Light* light);
-	Photon tracePhoton(Ray* photonRay, Vec3 flux);
+	void tracePhoton(Ray* photonRay, Vec3 flux);
 	void storePhoton(Vec3 position, Vec3 flux, Vec3 incomingAngle);
 };
 

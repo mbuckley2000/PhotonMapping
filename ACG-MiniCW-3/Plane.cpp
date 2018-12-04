@@ -60,10 +60,10 @@ Vec3 Plane::getColour(float u, float v) {
 	const float dimmingFactor = 0.3;
 
 	if (uI % 2 < 1) {
-		return this->colour;
+		return this->material.baseColour;
 	}
 	else {
-		return this->colour * dimmingFactor;
+		return this->material.baseColour * dimmingFactor;
 	}
 };
 
