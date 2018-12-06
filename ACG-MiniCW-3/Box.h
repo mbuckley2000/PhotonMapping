@@ -1,6 +1,9 @@
 #pragma once
 #include "Object.h"
+#include "Ray.h"
 #include "Vectors.h"
+
+class Ray;
 
 class Box :
 	public Object

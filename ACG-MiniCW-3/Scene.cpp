@@ -4,24 +4,28 @@
 #include "Vectors.h"
 #include "Common.h"
 
+# define M_PI           3.14159265358979323846  /* pi */
+
 cv::Vec3b toRGB(Vec3 v) {
 	for (int i = 0; i < 3; i++) {
 		v(i) = max(v(i), 0);
 		v(i) = min(v(i), 1);
 	}
 
+
 	return cv::Vec3b(v(2) * 255, v(1) * 255, v(0) * 255);
 }
 
 
 
-void Scene::render()
+void Scene::render(PhotonMap* photonMap)
 {
 
 	float t, u, v;
 
 	for (int x = 0; x < camera->imagePlane.resolution(0); x++) {
 		for (int y = 0; y < camera->imagePlane.resolution(1); y++) {
+
 			const Vec3 pixelWorldPos = this->camera->calculatePixelWorldPos(x, y);
 
 			Ray ray(pixelWorldPos, pixelWorldPos - this->camera->focus); //Pos, dir
@@ -81,14 +85,32 @@ void Scene::render()
 
 
 					//Colour
-					colour = (ambient + diffuse + specular).cwiseProduct(hitObj->getColour(u, v));
+					//colour = (ambient + diffuse + specular).cwiseProduct(hitObj->getColour(u, v));
 					
+					const Vec3 phongContrib = (diffuse + specular).cwiseProduct(hitObj->getColour(u, v));
+
+					const int num_photons = 100;
+					auto photons = photonMap->findNearestNeighbours(intersectionPoint, num_photons); //Priority queue
+
+					const float radiusSquared = photons.top()->squaredDistFromSearchPoint;
+
+					colour = Vec3(0, 0, 0);
+
+					while (photons.size()) {
+						colour += photons.top()->flux;
+						photons.pop();
+					}
+					
+					const float multiplier = 20 / (M_PI * radiusSquared);
+
+					colour = (colour * multiplier) + (phongContrib);
+
 					if (shadowed) {
 						const float maxLoss = 0.5;//1 - hitObj->ambient;
 						colour *= 1 - (maxLoss*hitCount/num_rays);
 					}
 
-				(*this->target)(y, x) = toRGB(colour);
+				(*this->target)(y, x) = toRGB(colour * 0.7);
 			}
 		}
 	}

@@ -4,9 +4,10 @@
 #include "Light.h"
 #include <vector>
 #include <opencv2/core.hpp>
-
+#include "PhotonMap.h"
 
 class Object;
+class PhotonMap;
 
 class Scene
 {
@@ -16,7 +17,7 @@ public:
 	Light* light;
 	cv::Mat_<cv::Vec3b>* target;
 
-	void render();
+	void render(PhotonMap* p);
 	Scene();
 	virtual ~Scene();
 };

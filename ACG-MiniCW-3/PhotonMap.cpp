@@ -9,6 +9,9 @@
 PhotonMap::PhotonMap(Scene * scene)
 {
 	this->scene = scene;
+	this->distributiona = std::uniform_real_distribution<float>(-1.0, 1.0);
+	this->distributionb = std::uniform_real_distribution<float>(0.0, 1.0);
+
 }
 
 PhotonMap::~PhotonMap()
@@ -35,20 +38,20 @@ void PhotonMap::mapPhotons(int numPhotons)
 	this->tree = new PhotonTree(photonPtrs);
 }
 
-std::vector<Photon*> PhotonMap::findNearestNeighbours(Vec3 position, int numberOfNeighbours)
+std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> PhotonMap::findNearestNeighbours(Vec3 position, int numberOfNeighbours)
 {
-	std::vector<Photon*> output;
+	//std::vector<Photon*> output;
 
 	std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> neighbours = this->tree->findNearestNeighbours(position, numberOfNeighbours);
 
-	assert(neighbours.size() == numberOfNeighbours);
+	/*assert(neighbours.size() == numberOfNeighbours);
 
 	while (neighbours.size()) {
 		output.push_back(neighbours.top());
 		neighbours.pop();
-	}
+	}*/
 
-	return output;
+	return neighbours;
 }
 
 Ray PhotonMap::generatePhotonRay(Light * light)
@@ -57,9 +60,9 @@ Ray PhotonMap::generatePhotonRay(Light * light)
 
 	float x, y, z;
 	do {
-		x = random(-1, 1);
-		y = random(-1, 1);
-		z = random(-1, 1);
+		x = this->distributiona(this->generator);
+		y = this->distributiona(this->generator);
+		z = this->distributiona(this->generator);
 	} while (pow(x, 2) + pow(y, 2) + pow(z, 2) > 1);
 
 	const Vec3 direction = Vec3(x, y, z).normalized();
@@ -80,18 +83,19 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 		const Vec3 intersectionPoint = photonRay->position + (photonRay->direction * t);
 		
 		//Calculate changes
-		const float r = random(0, 1); //Ideally use an evenly distributed function such as drand48() on linux. Open source so we can reimplement
+		const float r = this->distributionb(this->generator); //Ideally use an evenly distributed function such as drand48() on linux. Open source so we can reimplement
 
 		//Chance of diffuse and specular reflections is based on material
 		const float sProb = collisionObj->material.specularProbability;
 		const float dProb = collisionObj->material.diffuseProbability;
 
 		bool reflected = false;
-
+		//remove
+		
 		if (r < dProb) {
 			//Diffusely reflected
-			this->storePhoton(intersectionPoint, flux, photonRay->direction);
 			flux = flux.cwiseProduct(collisionObj->getColour(u, v));
+			this->storePhoton(intersectionPoint, flux, photonRay->direction);
 			reflected = true;
 		}
 		else if (r < dProb + sProb) { //Between dProb and sProb
@@ -100,6 +104,7 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 		}
 		else {
 			//Absorbed
+			//flux = flux.cwiseProduct(collisionObj->getColour(u, v));
 			this->storePhoton(intersectionPoint, flux, photonRay->direction);
 		}
 
