@@ -13,6 +13,8 @@ cv::Vec3b toRGB(Vec3 v) {
 	return cv::Vec3b(v(2) * 255, v(1) * 255, v(0) * 255);
 }
 
+
+
 void Scene::render()
 {
 

@@ -13,6 +13,7 @@ PhotonMap::PhotonMap(Scene * scene)
 
 PhotonMap::~PhotonMap()
 {
+	delete this->tree;
 }
 
 void PhotonMap::mapPhotons(int numPhotons)
@@ -31,7 +32,23 @@ void PhotonMap::mapPhotons(int numPhotons)
 		photonPtrs.push_back(&photon);
 	}
 
-	PhotonTree photonTree = PhotonTree(photonPtrs);
+	this->tree = new PhotonTree(photonPtrs);
+}
+
+std::vector<Photon*> PhotonMap::findNearestNeighbours(Vec3 position, int numberOfNeighbours)
+{
+	std::vector<Photon*> output;
+
+	std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> neighbours = this->tree->findNearestNeighbours(position, numberOfNeighbours);
+
+	assert(neighbours.size() == numberOfNeighbours);
+
+	while (neighbours.size()) {
+		output.push_back(neighbours.top());
+		neighbours.pop();
+	}
+
+	return output;
 }
 
 Ray PhotonMap::generatePhotonRay(Light * light)

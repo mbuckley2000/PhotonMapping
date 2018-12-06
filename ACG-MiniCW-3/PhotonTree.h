@@ -12,7 +12,7 @@ class MaximumDistanceCompare
 public:
 	bool operator() (Photon* i, Photon* j)
 	{
-		return i->squaredDistFromSearchPoint > j->squaredDistFromSearchPoint;
+		return i->squaredDistFromSearchPoint < j->squaredDistFromSearchPoint;
 	}
 };
 
@@ -27,7 +27,8 @@ public:
 private:
 	Photon** photons;
 	int* nodeSplittingDimension;
-	int size;
+	int num_photons;
+	int maxNodeID;
 	Photon* getLeftChild(int node, int* nodeId);
 	Photon* getRightChild(int node, int* nodeId);
 	Photon* getNode(int node);

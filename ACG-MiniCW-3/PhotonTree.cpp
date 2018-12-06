@@ -87,6 +87,7 @@ void PhotonTree::buildBalancedTree(std::vector<Photon*> photons, int nodeID)
 	this->photons[nodeID] = photons.at(medianArrayPos);
 	this->nodeSplittingDimension[nodeID] = largestDim;
 
+
 	if (photons.size() > 1) {
 		if (medianArrayPos - 1 >= 0) {
 			//Left tree becomes all photons less than median
@@ -108,11 +109,13 @@ void PhotonTree::buildBalancedTree(std::vector<Photon*> photons, int nodeID)
 
 PhotonTree::PhotonTree(std::vector<Photon*> photonPtrs)
 {
-	this->size = photonPtrs.size();
-	const int maxNodeID = (2 * this->size) + 1;
-	this->nodeSplittingDimension = (int*)malloc(sizeof(int) * maxNodeID);
-	this->photons = (Photon**) malloc(sizeof(Photon*) * maxNodeID);
-
+	this->num_photons = photonPtrs.size();
+	this->maxNodeID = (2 * this->num_photons) + 1;
+	this->nodeSplittingDimension = (int*)malloc(sizeof(int) * this->maxNodeID);
+	this->photons = (Photon**) malloc(sizeof(Photon*) * this->maxNodeID);
+	for (int i = 0; i < this->maxNodeID; i++) {
+		this->photons[i] = NULL;
+	}
 	this->buildBalancedTree(photonPtrs, 1);
 }
 
@@ -127,7 +130,7 @@ std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> Photo
 
 int PhotonTree::getSize()
 {
-	return this->size;
+	return this->num_photons;
 }
 
 PhotonTree::~PhotonTree()
@@ -150,6 +153,16 @@ Photon * PhotonTree::getRightChild(int node, int * nodeId)
 
 Photon * PhotonTree::getNode(int node)
 {
+	if (node < 1) {
+		std::cerr << "Error: KD-Tree root node is 1. Cannot access below 1. Attempted to access: " << node << std::endl;
+		exit(1);
+	}
+
+	if (node >= this->maxNodeID) {
+		//std::cerr << "Error: KD-Tree out of bounds: Min 1  Max maxNodeID-1" << std::endl;
+		return NULL;
+	}
+
 	return this->photons[node];
 }
 
@@ -188,10 +201,34 @@ void PhotonTree::locatePhotons(Vec3 position, float squaredMaxDistance, int node
 	Photon* currentNode = this->getNode(nodeID);
 
 	//TODO make sure this check is accurate
-	const bool hasChildren = this->getRightChildID(nodeID) < this->getSize();
+	//const bool hasChildren = this->nodeHasChildren[nodeID];//this->getRightChildID(nodeID) < this->getSize();
+	int i;
+	Photon* leftChild = this->getLeftChild(nodeID, &i);
+	Photon* rightChild = this->getRightChild(nodeID, &i);
+	const bool hasLeftChild = (leftChild != NULL);
+	const bool hasRightChild = (rightChild != NULL);
+
+	//Get squared distance of current node from search position
+	currentNode->squaredDistFromSearchPoint = (position - currentNode->position).squaredNorm();
+
+	//float newSquaredMaxDistance;
+
+	if (currentNode->squaredDistFromSearchPoint < squaredMaxDistance) {
+		//Add to max heap h
+		queue->push(currentNode);
+
+		//Set new maxDistance to worst from heap
+		if (queue->size() > numNeighbours) {
+			//Remove worst from heap
+			queue->pop();
+
+			//New max distance is the same as the photon in the queue which is furthest away
+			squaredMaxDistance = (queue->top()->position - position).squaredNorm();
+		}
+	}
 
 	//go left or right until no children
-	if (hasChildren) {
+	if (hasLeftChild || hasRightChild) {
 		//get splitting dim
 		const int splittingDim = this->nodeSplittingDimension[nodeID];
 
@@ -200,34 +237,21 @@ void PhotonTree::locatePhotons(Vec3 position, float squaredMaxDistance, int node
 		const float squaredHyperPlaneDistance = pow(hyperPlaneDistance, 2);
 
 		if (hyperPlaneDistance < 0) {
-			//Go left
-			this->locatePhotons(position, squaredMaxDistance, this->getLeftChildID(nodeID), queue, numNeighbours);
-			if (squaredHyperPlaneDistance < squaredMaxDistance) {
+			if (hasLeftChild) {
+				//Go left
+				this->locatePhotons(position, squaredMaxDistance, this->getLeftChildID(nodeID), queue, numNeighbours);
+			}
+			if (squaredHyperPlaneDistance < squaredMaxDistance && hasRightChild) {
 				this->locatePhotons(position, squaredMaxDistance, this->getRightChildID(nodeID), queue, numNeighbours);
 			}
 		}
-		else {
+		else if (hasRightChild) {
+
 			//Go right
 			this->locatePhotons(position, squaredMaxDistance, this->getRightChildID(nodeID), queue, numNeighbours);
-			if (squaredHyperPlaneDistance < squaredMaxDistance) {
+			if (squaredHyperPlaneDistance < squaredMaxDistance && hasLeftChild) {
 				this->locatePhotons(position, squaredMaxDistance, this->getLeftChildID(nodeID), queue, numNeighbours);
 			}
 		}
 	}
-
-	//Get squared distance of current node from search position
-	currentNode->squaredDistFromSearchPoint = (position - currentNode->position).squaredNorm();
-
-
-	if (currentNode->squaredDistFromSearchPoint < squaredMaxDistance) {
-		//Add to max heap h
-		queue->push(currentNode);
-
-		//Adjust max distance if heap is full to best in the queue
-		if (queue->size() >= numNeighbours) {
-			//New max distance is the same as the photon in the queue which is furthest away
-			squaredMaxDistance = (queue->top()->position - position).squaredNorm();
-		}
-	}
-
 }
