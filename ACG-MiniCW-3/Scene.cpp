@@ -40,9 +40,11 @@ void Scene::render(PhotonMap* photonMap)
 				Vec3 colour;
 
 				//Ambient
-				const Vec3 ambient = Vec3(0, 0, 0);// hitObj->ambient * light->colour;
+				//const Vec3 ambient = Vec3(0, 0, 0);// hitObj->ambient * light->colour;
 				
-				int num_rays = 1;
+#ifdef SHADOWING
+
+				int num_rays = 16;
 				int hitCount = 0;
 				bool shadowed = false;
 				//Check for shadow
@@ -62,7 +64,7 @@ void Scene::render(PhotonMap* photonMap)
 					//Shadow
 					//colour = ambient.cwiseProduct(hitObj->getColour(u, v));
 				}
-				
+#endif
 				
 					//Diffuse
 					const Vec3 lightVector = -light->vectorTo(intersectionPoint);
@@ -103,13 +105,13 @@ void Scene::render(PhotonMap* photonMap)
 					
 					const float multiplier = 20 / (M_PI * radiusSquared);
 
-					colour = (colour * multiplier) + (phongContrib);
-
+					colour = (colour * multiplier);// +(phongContrib);
+#ifdef SHADOWING
 					if (shadowed) {
 						const float maxLoss = 0.5;//1 - hitObj->ambient;
 						colour *= 1 - (maxLoss*hitCount/num_rays);
 					}
-
+#endif
 				(*this->target)(y, x) = toRGB(colour * 0.7);
 			}
 		}

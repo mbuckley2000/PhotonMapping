@@ -40,23 +40,13 @@ void PhotonMap::mapPhotons(int numPhotons)
 
 std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> PhotonMap::findNearestNeighbours(Vec3 position, int numberOfNeighbours)
 {
-	//std::vector<Photon*> output;
-
 	std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> neighbours = this->tree->findNearestNeighbours(position, numberOfNeighbours);
-
-	/*assert(neighbours.size() == numberOfNeighbours);
-
-	while (neighbours.size()) {
-		output.push_back(neighbours.top());
-		neighbours.pop();
-	}*/
-
 	return neighbours;
 }
 
 Ray PhotonMap::generatePhotonRay(Light * light)
 {
-	//Need to implement direction masking to prevent wasted photons
+	//TODO Need to implement direction masking to prevent wasted photons
 
 	float x, y, z;
 	do {
@@ -72,9 +62,6 @@ Ray PhotonMap::generatePhotonRay(Light * light)
 
 void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 {
-	//REMOVE THIS
-	//flux = flux.normalized();
-
 	//Trace the photon ray
 	float t, u, v;
 	Object* collisionObj;
@@ -90,6 +77,7 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 		const float dProb = collisionObj->material.diffuseProbability;
 
 		bool reflected = false;
+		bool refracted = false;
 		//remove
 		
 		if (r < dProb) {
@@ -100,11 +88,14 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 		}
 		else if (r < dProb + sProb) { //Between dProb and sProb
 			//Specularly reflected
-			reflected = true;
+			if (collisionObj->material.refractive) {
+				refracted = true;
+			} else {
+				reflected = true;
+			}
 		}
 		else {
 			//Absorbed
-			//flux = flux.cwiseProduct(collisionObj->getColour(u, v));
 			this->storePhoton(intersectionPoint, flux, photonRay->direction);
 		}
 
@@ -112,6 +103,11 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 			//Reflect and trace new ray
 			photonRay->position = intersectionPoint;
 			photonRay->direction = reflectVector(-photonRay->direction, collisionObj->getNormalAt(intersectionPoint));
+			photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
+			this->tracePhoton(photonRay, flux);
+		} else if (refracted) {
+			photonRay->position = intersectionPoint;
+			photonRay->direction = refractVector(photonRay->direction, collisionObj->getNormalAt(intersectionPoint), collisionObj->material.indexOfRefraction);
 			photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
 			this->tracePhoton(photonRay, flux);
 		}
