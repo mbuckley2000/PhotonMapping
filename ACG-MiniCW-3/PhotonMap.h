@@ -7,7 +7,7 @@
 #include "PhotonTree.h"
 #include "Scene.h"
 #include <random>
-
+#include <mutex>
 class Scene;
 class Ray;
 
@@ -27,14 +27,13 @@ private:
 	int numPhotons;
 	PhotonTree* tree;
 	Scene* scene;
-	std::default_random_engine generator;
-	std::uniform_real_distribution<float> distributiona;
-	std::uniform_real_distribution<float> distributionb;
 
-	Ray generatePhotonRay(Light* light);
-	void tracePhoton(Ray* photonRay, Vec3 flux);
-	void storePhoton(Vec3 position, Vec3 flux, Vec3 incomingAngle);
-	void mapperThread(int threadID, int numberOfThreads);
+	Ray generatePhotonRay(Light * light, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution);
+	void tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution);
+	void mapperThread(int threadID, int numPhotons, Vec3 photonFlux);
+
+	std::mutex photonMappingMutex;
+
 };
 
 

@@ -89,7 +89,7 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 		const Vec3 lightVector = -light->vectorTo(intersectionPoint);
 		const Vec3 viewVector = (ray->position - intersectionPoint).normalized();
 
-		colour = our_getBDRF(lightVector, viewVector, hitObj->getNormalAt(intersectionPoint), hitObj->material.brdf);
+		//colour = our_getBDRF(lightVector, viewVector, hitObj->getNormalAt(intersectionPoint), hitObj->material.brdf);
 
 		//Photon mapping
 		if (PMAP) {

@@ -10,9 +10,6 @@
 PhotonMap::PhotonMap(Scene * scene)
 {
 	this->scene = scene;
-	this->distributiona = std::uniform_real_distribution<float>(-1.0, 1.0);
-	this->distributionb = std::uniform_real_distribution<float>(0.0, 1.0);
-
 }
 
 PhotonMap::~PhotonMap()
@@ -21,8 +18,27 @@ PhotonMap::~PhotonMap()
 }
 
 
-void PhotonMap::mapperThread(int threadID, int numberOfThreads) {
+void PhotonMap::mapperThread(int threadID, int numPhotons, Vec3 photonFlux) {
+	std::vector<Photon> photons;
+	std::default_random_engine generator;
+	std::uniform_real_distribution<float> distributiona(-1.0, 1.0);
+	std::uniform_real_distribution<float> distributionb(0.0, 1.0);
 
+
+	for (int i = 0; i < numPhotons; i++) {
+		Ray photonRay = this->generatePhotonRay(this->scene->light, &generator, &distributiona);
+		tracePhoton(&photonRay, photonFlux, &photons, &generator, &distributionb);
+	}
+
+	//Mutex lock
+	std::lock_guard<std::mutex> guard(this->photonMappingMutex);
+
+	//Copy to global array
+	for (int i = 0; i < photons.size(); i++) {
+		this->photons.push_back(photons[i]);
+	}
+
+	//Mutex unlocks by going out of scope
 }
 
 
@@ -32,9 +48,15 @@ void PhotonMap::mapPhotons(int numPhotons)
 
 	const Vec3 photonFlux = light->colour / numPhotons;
 
-	for (int i = 0; i < numPhotons; i++) {
-		Ray photonRay = this->generatePhotonRay(light);
-		tracePhoton(&photonRay, photonFlux);
+	std::vector<std::thread> threads;
+
+	const int numThreads = 8;
+	for (int i = 0; i < numThreads; i++) {
+		threads.push_back(std::thread(&PhotonMap::mapperThread, this, i, numPhotons/numThreads, photonFlux));
+	}
+
+	for (int i = 0; i < numThreads; i++) {
+		threads[i].join();
 	}
 
 	std::vector<Photon*> photonPtrs;
@@ -51,15 +73,15 @@ std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> Photo
 	return neighbours;
 }
 
-Ray PhotonMap::generatePhotonRay(Light * light)
+Ray PhotonMap::generatePhotonRay(Light * light, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution)
 {
 	//TODO Need to implement direction masking to prevent wasted photons
 
 	float x, y, z;
 	do {
-		x = this->distributiona(this->generator);
-		y = this->distributiona(this->generator);
-		z = this->distributiona(this->generator);
+		x = (*distribution)(*generator);
+		y = (*distribution)(*generator);
+		z = (*distribution)(*generator);
 	} while (pow(x, 2) + pow(y, 2) + pow(z, 2) > 1);
 
 	const Vec3 direction = Vec3(x, y, z).normalized();
@@ -67,7 +89,17 @@ Ray PhotonMap::generatePhotonRay(Light * light)
 	return Ray(light->getPosition(), direction);
 }
 
-void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
+void storePhoton(Vec3 position, Vec3 flux, Vec3 incomingAngle, std::vector<Photon>* photons)
+{
+	//Store the photon
+	Photon p;
+	p.position = position;
+	p.flux = flux;
+	p.incomingAngle = incomingAngle;
+	photons->push_back(p);
+}
+
+void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution)
 {
 	//Trace the photon ray
 	float t, u, v;
@@ -77,7 +109,7 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 		const Vec3 intersectionPoint = photonRay->position + (photonRay->direction * t);
 		
 		//Calculate changes
-		float r = this->distributionb(this->generator); //Ideally use an evenly distributed function such as drand48() on linux. Open source so we can reimplement
+		float r = (*distribution)(*generator); //Ideally use an evenly distributed function such as drand48() on linux. Open source so we can reimplement
 
 		//Chance of diffuse and specular reflections is based on material
 		const float sProb = collisionObj->material.specularProbability;
@@ -91,12 +123,12 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 
 		if (r < dProb) {
 			//Diffusely reflected
-			this->storePhoton(intersectionPoint, flux, photonRay->direction);
+			storePhoton(intersectionPoint, flux, photonRay->direction, photons);
 			flux = flux.cwiseProduct(our_getBDRF(photonRay->direction.normalized(), reflectedVector, collisionObj->getNormalAt(intersectionPoint), collisionObj->material.brdf));
 			reflected = true;
 		} else if (r < dProb + sProb) { //Between dProb and sProb
 			//Specular
-			r = this->distributionb(this->generator);
+			r = (*distribution)(*generator);
 			if (r < collisionObj->material.reflectiveness) {
 				reflected = true;
 			} else {
@@ -104,7 +136,7 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 			}
 		} else {
 			//Absorbed
-			this->storePhoton(intersectionPoint, flux, photonRay->direction);
+			storePhoton(intersectionPoint, flux, photonRay->direction, photons);
 		}
 
 		if (reflected) {
@@ -112,24 +144,14 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 			photonRay->position = intersectionPoint;
 			photonRay->direction = reflectedVector;
 			photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
-			this->tracePhoton(photonRay, flux);
+			this->tracePhoton(photonRay, flux, photons, generator, distribution);
 		} else if (refracted) {
 			photonRay->position = intersectionPoint;
 			photonRay->direction = refractVector(photonRay->direction, collisionObj->getNormalAt(intersectionPoint), collisionObj->material.indexOfRefraction);
 			photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
-			this->tracePhoton(photonRay, flux);
+			this->tracePhoton(photonRay, flux, photons, generator, distribution);
 		}
 	}
-}
-
-void PhotonMap::storePhoton(Vec3 position, Vec3 flux, Vec3 incomingAngle)
-{
-	//Store the photon
-	Photon p;
-	p.position = position;
-	p.flux = flux;
-	p.incomingAngle = incomingAngle;
-	this->photons.push_back(p);
 }
 
 bool pointSphereIntersection(Vec3 point, Vec3 centre, float radius) {
