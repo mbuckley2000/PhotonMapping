@@ -10,9 +10,18 @@ typedef struct BoundingBox {
 class MaximumDistanceCompare
 {
 public:
+	Vec3 searchPoint;
+
+	MaximumDistanceCompare(Vec3 searchPoint) {
+		this->searchPoint = searchPoint;
+	}
+
 	bool operator() (Photon* i, Photon* j)
 	{
-		return i->squaredDistFromSearchPoint < j->squaredDistFromSearchPoint;
+		const float iDist = (i->position - searchPoint).squaredNorm();
+		const float jDist = (j->position - searchPoint).squaredNorm();
+
+		return iDist < jDist;
 	}
 };
 

@@ -121,7 +121,9 @@ PhotonTree::PhotonTree(std::vector<Photon*> photonPtrs)
 
 std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> PhotonTree::findNearestNeighbours(Vec3 position, int numberOfNeighbours)
 {
-	std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> queue;
+
+	MaximumDistanceCompare compare(position);
+	std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> queue(compare);
 
 	this->locatePhotons(position, INFINITY, 1, &queue, numberOfNeighbours);
 
@@ -209,11 +211,13 @@ void PhotonTree::locatePhotons(Vec3 position, float squaredMaxDistance, int node
 	const bool hasRightChild = (rightChild != NULL);
 
 	//Get squared distance of current node from search position
-	currentNode->squaredDistFromSearchPoint = (position - currentNode->position).squaredNorm();
+	//currentNode->squaredDistFromSearchPoint = (position - currentNode->position).squaredNorm();
+
+	const float squaredDistFromSearchPoint = (position - currentNode->position).squaredNorm();
 
 	//float newSquaredMaxDistance;
 
-	if (currentNode->squaredDistFromSearchPoint < squaredMaxDistance) {
+	if (squaredDistFromSearchPoint < squaredMaxDistance) {
 		//Add to max heap h
 		queue->push(currentNode);
 

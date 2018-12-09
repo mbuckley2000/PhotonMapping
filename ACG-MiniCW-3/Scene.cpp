@@ -6,6 +6,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include "BRDF.h"
+#include <thread>
 
 # define M_PI           3.14159265358979323846  /* pi */
 # define EPSILON 0.00001
@@ -18,6 +19,21 @@ cv::Vec3b toRGB(Vec3 v) {
 
 
 	return cv::Vec3b(v(2) * 255, v(1) * 255, v(0) * 255);
+}
+
+void Scene::tracerThread(int threadID, int numThreads) {
+	for (int x = threadID; x < camera->imagePlane.resolution(0); x+=numThreads) {
+		for (int y = 0; y < camera->imagePlane.resolution(1); y++) {
+
+			const Vec3 pixelWorldPos = this->camera->calculatePixelWorldPos(x, y);
+
+			Ray ray(pixelWorldPos, pixelWorldPos - this->camera->focus); //Pos, dir
+
+			const float dimmingFactor = 10;
+			(*this->target)(y, x) = toRGB(this->traceRay(&ray, 0, 4) * dimmingFactor);
+		}
+		this->lineDone[x] = true;
+	}
 }
 
 //Returns colour
@@ -75,11 +91,12 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 
 		colour = our_getBDRF(lightVector, viewVector, hitObj->getNormalAt(intersectionPoint), hitObj->material.brdf);
 
+		//Photon mapping
 		if (PMAP) {
 			const int num_photons = 100;
 			auto photons = this->photonMap->findNearestNeighbours(intersectionPoint, num_photons); //Priority queue
 
-			const float radiusSquared = photons.top()->squaredDistFromSearchPoint;
+			const float radiusSquared = (photons.top()->position - intersectionPoint).squaredNorm(); //photons.top()->squaredDistFromSearchPoint;
 
 			Vec3 pmap_contrib = Vec3(0, 0, 0);
 
@@ -99,18 +116,41 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 
 void Scene::render()
 {
-	for (int x = 0; x < camera->imagePlane.resolution(0); x++) {
-		for (int y = 0; y < camera->imagePlane.resolution(1); y++) {
+	const int lines = camera->imagePlane.resolution(0);
 
-			const Vec3 pixelWorldPos = this->camera->calculatePixelWorldPos(x, y);
+	this->lineDone = (bool*)malloc(sizeof(bool) * lines);
+	this->lineDrawn = (bool*)malloc(sizeof(bool) * lines);
+	for (int i = 0; i < lines; i++) {
+		lineDone[i] = false;
+		lineDrawn[i] = false;
+	}
 
-			Ray ray(pixelWorldPos, pixelWorldPos - this->camera->focus); //Pos, dir
+	std::vector<std::thread> threads;
 
-			const float dimmingFactor = 10;
-			(*this->target)(y, x) = toRGB(this->traceRay(&ray, 0, 4) * dimmingFactor);
+	const int numThreads = 8;
+	for (int i = 0; i < numThreads; i++) {
+		threads.push_back(std::thread(&Scene::tracerThread, this, i, numThreads));
+	}
+
+	int count = 0;
+	int smallest = 0;
+
+	while (smallest < lines) {
+		for (int i = smallest; i < lines; i++) {
+			if (lineDone[i] && smallest == i) {
+				smallest++;
+			}
 		}
-		cv::imshow("Display window", *this->target); // Show our image inside it.
+
+		//render
+		cv::imshow("Render output", *this->target); // Show our image inside it.
 		cv::waitKey(1);
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+
+
+	for (int i = 0; i < numThreads; i++) {
+		threads[i].join();
 	}
 }
 
@@ -121,4 +161,5 @@ Scene::Scene()
 
 Scene::~Scene()
 {
+	free(lineDone);
 }

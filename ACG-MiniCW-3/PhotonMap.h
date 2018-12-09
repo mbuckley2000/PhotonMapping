@@ -34,6 +34,7 @@ private:
 	Ray generatePhotonRay(Light* light);
 	void tracePhoton(Ray* photonRay, Vec3 flux);
 	void storePhoton(Vec3 position, Vec3 flux, Vec3 incomingAngle);
+	void mapperThread(int threadID, int numberOfThreads);
 };
 
 

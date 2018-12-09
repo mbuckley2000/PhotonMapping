@@ -20,6 +20,12 @@ PhotonMap::~PhotonMap()
 	delete this->tree;
 }
 
+
+void PhotonMap::mapperThread(int threadID, int numberOfThreads) {
+
+}
+
+
 void PhotonMap::mapPhotons(int numPhotons)
 {
 	Light* light = this->scene->light;
