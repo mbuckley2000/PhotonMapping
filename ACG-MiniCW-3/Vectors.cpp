@@ -24,3 +24,19 @@ Vec3 refractVector(Vec3 incomingVector, Vec3 surfaceNormal, float indexOfRefract
 
 	return ((refractionRatio * incomingVector) + (((refractionRatio) * t1) - t2) * surfaceNormal);
 }
+
+
+Vec3 projectVectorOntoPlane(Vec3 vector, Vec3 planeNormal) {
+	const float normalLength = planeNormal.norm();
+	return planeNormal.cross(((vector.cross(planeNormal)) / normalLength) / normalLength);
+}
+
+//Calculates the azimuth between two vectors projected onto a plane
+float calculateCosAzimuth(Vec3 vecA, Vec3 vecB, Vec3 planeNormal) {
+	const Vec3 projectedA = projectVectorOntoPlane(vecA, planeNormal);
+	const Vec3 projectedB = projectVectorOntoPlane(vecB, planeNormal);
+
+	const float cosTheta = cosBetweenVectors(vecA, vecB);
+
+	return cosTheta;
+}

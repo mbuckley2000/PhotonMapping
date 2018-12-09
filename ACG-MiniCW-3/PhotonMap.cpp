@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include "PhotonTree.h"
+#include "BRDF.h"
 
 PhotonMap::PhotonMap(Scene * scene)
 {
@@ -70,7 +71,7 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 		const Vec3 intersectionPoint = photonRay->position + (photonRay->direction * t);
 		
 		//Calculate changes
-		const float r = this->distributionb(this->generator); //Ideally use an evenly distributed function such as drand48() on linux. Open source so we can reimplement
+		float r = this->distributionb(this->generator); //Ideally use an evenly distributed function such as drand48() on linux. Open source so we can reimplement
 
 		//Chance of diffuse and specular reflections is based on material
 		const float sProb = collisionObj->material.specularProbability;
@@ -80,21 +81,22 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 		bool refracted = false;
 		//remove
 		
+		const Vec3 reflectedVector = reflectVector(-photonRay->direction, collisionObj->getNormalAt(intersectionPoint)).normalized();
+
 		if (r < dProb) {
 			//Diffusely reflected
-			flux = flux.cwiseProduct(collisionObj->getColour(u, v));
 			this->storePhoton(intersectionPoint, flux, photonRay->direction);
+			flux = flux.cwiseProduct(our_getBDRF(photonRay->direction.normalized(), reflectedVector, collisionObj->getNormalAt(intersectionPoint), collisionObj->material.brdf));
 			reflected = true;
-		}
-		else if (r < dProb + sProb) { //Between dProb and sProb
-			//Specularly reflected
-			if (collisionObj->material.refractive) {
-				refracted = true;
-			} else {
+		} else if (r < dProb + sProb) { //Between dProb and sProb
+			//Specular
+			r = this->distributionb(this->generator);
+			if (r < collisionObj->material.reflectiveness) {
 				reflected = true;
+			} else {
+				refracted = true;
 			}
-		}
-		else {
+		} else {
 			//Absorbed
 			this->storePhoton(intersectionPoint, flux, photonRay->direction);
 		}
@@ -102,7 +104,7 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux)
 		if (reflected) {
 			//Reflect and trace new ray
 			photonRay->position = intersectionPoint;
-			photonRay->direction = reflectVector(-photonRay->direction, collisionObj->getNormalAt(intersectionPoint));
+			photonRay->direction = reflectedVector;
 			photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
 			this->tracePhoton(photonRay, flux);
 		} else if (refracted) {

@@ -16,9 +16,14 @@ public:
 	Camera* camera;
 	Light* light;
 	cv::Mat_<cv::Vec3b>* target;
+	PhotonMap* photonMap;
 
-	void render(PhotonMap* p);
+	void render();
 	Scene();
 	virtual ~Scene();
+
+private:
+	double* goldBDRF;
+	Vec3 traceRay(Ray* ray, int depth, int maxDepth);
 };
 

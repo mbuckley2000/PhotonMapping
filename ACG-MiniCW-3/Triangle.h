@@ -7,7 +7,7 @@ class Triangle :
 {
 public:
 	Triangle(Vec3 v0, Vec3 v1, Vec3 v2);
-	Triangle(Mat3 vertices);
+	Triangle(Mat3 vertices, Mat3 vertexNormals);
 	virtual ~Triangle();
 
 	bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v);
@@ -18,5 +18,6 @@ private:
 	Vec3 edge2;
 	Vec3 normal;
 	Mat3 vertices;
+	std::vector<Vec3> vertexNormals;
 };
 

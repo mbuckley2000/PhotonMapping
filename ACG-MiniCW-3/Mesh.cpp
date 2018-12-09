@@ -7,7 +7,12 @@ using namespace Eigen;
 
 void Mesh::loadFromFile(std::string filename)
 {
-	igl::readOBJ(filename, this->vertices, this->faces);
+	//igl::readOBJ(filename, this->vertices, this->faces);
+
+	Eigen::Matrix2Xf texCoords;
+	Eigen::MatrixXi faceTex; //   FTC  #F list of face indices into vertex texture coordinates
+	
+	igl::readOBJ(filename, this->vertices, texCoords, this->vertexNormals, this->faces, faceTex, this->faceVns);
 }
 
 bool Mesh::rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v)
@@ -65,14 +70,17 @@ void Mesh::calculateTriangles()
 
 	for (int f = 0; f < this->faces.rows(); f++) {
 		const Vector3i face = this->faces.row(f);
+		const Vector3i faceVns = this->faceVns.row(f);
 
 		Matrix3f vs;
+		Matrix3f vns;
 
 		for (int v = 0; v < 3; v++) {
 			vs.col(v) = (this->vertices.row(face(v)).transpose() * this->scale) + this->position;
+			vns.col(v) = (this->vertexNormals.row(faceVns(v)).transpose());
 		}
 
-		Triangle* t = new Triangle(vs);
+		Triangle* t = new Triangle(vs, vns);
 		t->material = this->material;
 
 		this->triangles.push_back(t);

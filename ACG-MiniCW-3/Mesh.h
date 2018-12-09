@@ -9,7 +9,10 @@ class Mesh :
 {
 public:
 	Eigen::MatrixXf vertices;
+	Eigen::MatrixXf vertexNormals;
 	Eigen::MatrixXi faces;
+	Eigen::MatrixXi faceVns;//   FN  #F list of face indices into vertex normals
+
 	float scale;
 	std::vector<Triangle*> triangles;
 

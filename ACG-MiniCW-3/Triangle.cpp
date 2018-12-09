@@ -1,11 +1,29 @@
 #include "pch.h"
 #include "Triangle.h"
 
+//Copied from https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
+// Compute barycentric coordinates (u, v, w) for
+// point p with respect to triangle (a, b, c)
+void barycentric(Vec3 p, Vec3 a, Vec3 b, Vec3 c, float &u, float &v, float &w)
+{
+	Vec3 v0 = b - a, v1 = c - a, v2 = p - a;
+	float d00 = v0.dot(v0);
+	float d01 = v0.dot(v1);
+	float d11 = v1.dot(v1);
+	float d20 = v2.dot(v0);
+	float d21 = v2.dot(v1);
+	float denom = d00 * d11 - d01 * d01;
+	v = (d11 * d20 - d01 * d21) / denom;
+	w = (d00 * d21 - d01 * d20) / denom;
+	u = 1.0f - v - w;
+}
+
+
 //https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 bool Triangle::rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v)
 {
 	#define EPSILON 0.0000001
-	#define CULLING true
+	#define CULLING false
 
 	const Vec3 pVec = ray.direction.cross(this->edge2);
 
@@ -52,7 +70,14 @@ bool Triangle::rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v
 
 Vec3 Triangle::getNormalAt(Vec3 position)
 {
-	return this->normal;
+	if (this->vertexNormals.size() != 3) {
+		return this->normal;
+	}
+
+	float u, v, w;
+	barycentric(position, this->getVertex(0), this->getVertex(1), this->getVertex(2), u, v, w);
+
+	return (this->vertexNormals[0] * u + this->vertexNormals[1] * v + this->vertexNormals[2] * w);
 }
 
 Vec3 Triangle::getVertex(int vertex)
@@ -74,7 +99,7 @@ Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2)
 	this->normal = edge1.cross(edge2).normalized();
 }
 
-Triangle::Triangle(Mat3 vertices)
+Triangle::Triangle(Mat3 vertices, Mat3 vertexNormals)
 {
 	this->vertices = vertices;
 
@@ -84,6 +109,11 @@ Triangle::Triangle(Mat3 vertices)
 
 	//Pre-calc face normal
 	this->normal = edge1.cross(edge2).normalized();
+
+	//Push vns
+	for (int i = 0; i < 3; i++) {
+		this->vertexNormals.push_back(vertexNormals.col(i));
+	}
 }
 
 Triangle::~Triangle()

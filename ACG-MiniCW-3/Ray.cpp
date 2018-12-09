@@ -45,7 +45,7 @@ bool Ray::intersectsWith(Scene & scene, Object*& closestObjectPtr, float & t, fl
 Ray::Ray(Vec3 position, Vec3 direction)
 {
 	this->position = position;
-	this->direction = direction;
+	this->direction = direction.normalized();
 }
 
 
