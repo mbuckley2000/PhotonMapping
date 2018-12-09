@@ -77,13 +77,20 @@ void PhotonTree::buildBalancedTree(std::vector<Photon*> photons, int nodeID)
 
 	BoundingBox boundingBox = getBoundingBox(photons); //Bounds of all photon positions
 
+	const int medianArrayPos = photons.size() / 2;
+
 	//Sort points by size in largest dimension
 	const int largestDim = largestBoxDim(&boundingBox);
-	sort(photons.begin(), photons.end(), CompareDimensions(largestDim));
 
-	//This node becomes median
-	const int medianArrayPos = photons.size() / 2;
+
+
+	//Sort the array just until middle (median) posision is correct.
+	//All elems preceding median are less than it, and all following median are greater than it.
+	//Much faster than sort() with same eventual outcome (almost 2x speed)
+	std::nth_element(photons.begin(), photons.begin() + medianArrayPos, photons.end(), CompareDimensions(largestDim)); 
+
 	
+	//This node becomes median
 	this->photons[nodeID] = photons.at(medianArrayPos);
 	this->nodeSplittingDimension[nodeID] = largestDim;
 

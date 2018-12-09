@@ -50,6 +50,7 @@ void PhotonMap::mapPhotons(int numPhotons)
 
 	std::vector<std::thread> threads;
 
+	std::cout << "Kicking off photon mapping threadss" << std::endl;
 	const int numThreads = 8;
 	for (int i = 0; i < numThreads; i++) {
 		threads.push_back(std::thread(&PhotonMap::mapperThread, this, i, numPhotons/numThreads, photonFlux));
@@ -58,12 +59,14 @@ void PhotonMap::mapPhotons(int numPhotons)
 	for (int i = 0; i < numThreads; i++) {
 		threads[i].join();
 	}
+	std::cout << "Threads have finished" << std::endl;
 
 	std::vector<Photon*> photonPtrs;
 	for (auto& photon : this->photons) {
 		photonPtrs.push_back(&photon);
 	}
 
+	std::cout << "Building photon tree" << std::endl;
 	this->tree = new PhotonTree(photonPtrs);
 }
 
