@@ -10,5 +10,5 @@ public:
 	BoundingBox();
 	void expand(BoundingBox b);
 	void expand(Vec3 v);
-	int longestDim();
+	int largestDim();
 };

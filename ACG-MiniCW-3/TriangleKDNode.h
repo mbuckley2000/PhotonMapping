@@ -17,6 +17,6 @@ public:
 	TriangleKDNode();
 	~TriangleKDNode();
 
-	TriangleKDNode* balance(std::vector<Triangle*>& triangles, int depth);
+	TriangleKDNode* balance(std::vector<Triangle*> triangles, int depth);
 	bool intersect(Ray & ray, Object*& o, float & t, float& u, float& v);
 };

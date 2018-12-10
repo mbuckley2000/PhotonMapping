@@ -136,7 +136,7 @@ void Box::expand(Vec3 v)
 	}
 }
 
-int Box::longestDim()
+int Box::largestDim()
 {
 	float longest = 0;
 	int dim = 0;

@@ -18,7 +18,7 @@ public:
 	virtual Vec3 getNormalAt(Vec3 position) override;
 	virtual bool rayIntersects(Ray & ray, Object*& o, float & t, float & u, float & v) override;
 
-	int longestDim();
+	int largestDim();
 	void expand(Vec3 v);
 	void expand(Box b);
 

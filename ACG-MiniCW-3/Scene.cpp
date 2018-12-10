@@ -40,7 +40,7 @@ void Scene::tracerThread(int threadID, int numThreads) {
 //Returns colour
 Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 	const bool SHADOWING = false;
-	const bool PMAP = false;
+	const bool PMAP = true;
 
 	Vec3 colour = Vec3(0, 0, 0);
 
@@ -106,15 +106,19 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 		const Vec3 viewVector = (ray->position - intersectionPoint).normalized();
 
 		if (typeid(*hitObj) == typeid(Box)) {
-			//
+			std::cerr << "Trying to render a bounding box" << std::endl;
+		}
+
+		if (hitObj->material.brdf != nullptr) {
+			colour = our_getBDRF(lightVector, viewVector, hitNormal, material->brdf);
 		}
 		else {
-			colour = our_getBDRF(lightVector, viewVector, hitNormal, material->brdf);
+			std::cerr << "NULLPTR for material BRDF." << std::endl;
 		}
 
 		//Photon mapping
 		if (PMAP) {
-			const int num_photons = 100;
+			const int num_photons = 200;
 			auto photons = this->photonMap->findNearestNeighbours(intersectionPoint, num_photons); //Priority queue
 
 			const float radiusSquared = (photons.top()->position - intersectionPoint).squaredNorm();
@@ -146,7 +150,7 @@ void Scene::render()
 
 	std::vector<std::thread> threads;
 
-	const int numThreads = 8;
+	const int numThreads = 12;
 	for (int i = 0; i < numThreads; i++) {
 		threads.push_back(std::thread(&Scene::tracerThread, this, i, numThreads));
 	}

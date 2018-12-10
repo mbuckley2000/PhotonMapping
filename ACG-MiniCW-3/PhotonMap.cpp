@@ -51,7 +51,7 @@ void PhotonMap::mapPhotons(int numPhotons)
 	std::vector<std::thread> threads;
 
 	std::cout << "Kicking off photon mapping threadss" << std::endl;
-	const int numThreads = 8;
+	const int numThreads = 12;
 	for (int i = 0; i < numThreads; i++) {
 		threads.push_back(std::thread(&PhotonMap::mapperThread, this, i, numPhotons/numThreads, photonFlux));
 	}

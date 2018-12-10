@@ -16,7 +16,32 @@ TriangleKDNode::~TriangleKDNode()
 {
 }
 
-TriangleKDNode * TriangleKDNode::balance(std::vector<Triangle*>& triangles, int depth)
+// Comparator for sorting photons based on a given dimension of their position vector
+struct CompareDimensions {
+	CompareDimensions(int dimension) {
+		this->dimension = dimension;
+	}
+
+	bool operator () (Triangle* i, Triangle* j) {
+		return (i->getMidpoint()(dimension) < j->getMidpoint()(dimension));
+	}
+
+	int dimension;
+};
+
+//Returns a slice of a vector
+//template <typename T>
+std::vector<Triangle*> sliceVec(int startPos, int endPos, std::vector<Triangle*> vector) {
+	std::vector<Triangle*> out;
+
+	for (int i = startPos; i <= endPos; i++) {
+		out.push_back(vector[i]);
+	}
+
+	return out;
+}
+
+TriangleKDNode * TriangleKDNode::balance(std::vector<Triangle*> triangles, int depth)
 {
 	TriangleKDNode* node = new TriangleKDNode();
 	node->triangles = triangles;
@@ -44,26 +69,63 @@ TriangleKDNode * TriangleKDNode::balance(std::vector<Triangle*>& triangles, int 
 		node->boundingBox.expand(triangles[i]->getBoundingBox());
 	}
 
+
+	if (triangles.size() < 10) {
+		node->left = new TriangleKDNode();
+		node->right = new TriangleKDNode();
+		node->left->triangles = std::vector<Triangle*>();
+		node->right->triangles = std::vector<Triangle*>();
+		return node;
+	}
+
 	Vec3 midPoint(0, 0, 0);
 	for (int i = 0; i < triangles.size(); i++) {
 		midPoint += triangles[i]->getMidpoint();
 	}
 	midPoint /= triangles.size();
 
-	std::vector<Triangle*> leftTriangles;
-	std::vector<Triangle*> rightTriangles;
-	const int axis = node->boundingBox.longestDim();
-	for (int i = 0; i < triangles.size(); i++) {
-		//Split triangles based on the median midpoint in the longest axis
-		midPoint[axis] >= triangles[i]->getMidpoint()[axis] ? rightTriangles.push_back(triangles[i]) : leftTriangles.push_back(triangles[i]);
-	}
 
-	if (leftTriangles.size() == 0 && rightTriangles.size() > 0) {
-		leftTriangles = rightTriangles;
+
+	//Sort the array just until middle (median) posision is correct.
+	//All elems preceding median are less than it, and all following median are greater than it.
+	//Much faster than sort() with same eventual outcome (almost 2x speed)
+	const int medianArrayPos = triangles.size() / 2;
+	const int largestDim = node->boundingBox.largestDim();
+	std::nth_element(triangles.begin(), triangles.begin() + medianArrayPos, triangles.end(), CompareDimensions(largestDim));
+
+	//if (triangles.size() > 1) { WE KNOW IT IS >1 already
+		//Left tree becomes all photons less than median
+	node->left = balance(sliceVec(0, medianArrayPos, triangles), depth + 1);
+
+	if (medianArrayPos + 1 < triangles.size()) {
+		//Right tree becomes all photons greater than median
+		node->right = balance(sliceVec(medianArrayPos + 1, triangles.size() - 1, triangles), depth + 1);
 	}
-	else if (rightTriangles.size() == 0 && leftTriangles.size() > 0) {
-		rightTriangles = leftTriangles;
+	else {
+		node->right = NULL;
 	}
+	//}
+
+
+
+
+	//std::vector<Triangle*> leftTriangles;
+	//std::vector<Triangle*> rightTriangles;
+	//const int axis = node->boundingBox.largestDim();
+	//for (int i = 0; i < triangles.size(); i++) {
+	//	//Split triangles based on the median midpoint in the longest axis
+	//	midPoint[axis] >= triangles[i]->getMidpoint()[axis] ? rightTriangles.push_back(triangles[i]) : leftTriangles.push_back(triangles[i]);
+	//}
+
+	//if (leftTriangles.size() == 0 && rightTriangles.size() > 0) {
+	//	leftTriangles = rightTriangles;
+	//}
+	//else if (rightTriangles.size() == 0 && leftTriangles.size() > 0) {
+	//	rightTriangles = leftTriangles;
+	//}
+
+
+
 
 	//node->left = balance(leftTriangles, depth + 1);
 	//node->right = balance(rightTriangles, depth + 1);
@@ -79,8 +141,10 @@ TriangleKDNode * TriangleKDNode::balance(std::vector<Triangle*>& triangles, int 
 	//	}
 	//}
 
+
+
 //Recurse down left and right sides
-	if (leftTriangles.size() > 10) {
+	/*if (leftTriangles.size() > 10) {
 		node->left = balance(leftTriangles, depth + 1);
 	}
 	else {
@@ -94,7 +158,7 @@ TriangleKDNode * TriangleKDNode::balance(std::vector<Triangle*>& triangles, int 
 	else {
 		node->right = new TriangleKDNode();
 		node->right->triangles = std::vector<Triangle*>();
-	}
+	}*/
 	
 	return node;
 }
@@ -103,14 +167,56 @@ TriangleKDNode * TriangleKDNode::balance(std::vector<Triangle*>& triangles, int 
 bool TriangleKDNode::intersect(Ray & ray, Object*& o, float & t, float& u, float& v)
 {
 	//Check to see if the ray intersects the bounding box of the given node
-	if (this->boundingBox.rayIntersects(ray, o, t, u, v)) {
+
+	float boxt, boxu, boxv;
+	Object* boxo;
+
+	if (this->boundingBox.rayIntersects(ray, boxo, boxt, boxu, boxv)) {
 		bool hit_tri = false;
 
-		//If either child has triangles, rcurse down both sides and check for intersections
-		if (this->left && this->right) {
+		if (this->left || this->right) {
 			if (this->left->triangles.size() > 0 || this->right->triangles.size() > 0) {
-				bool hitLeft = this->left->intersect(ray, o, t, u, v);
-				bool hitRight = this->right->intersect(ray, o, t, u, v);
+				bool hitLeft = false;
+				bool hitRight = false;
+
+				float tl, ul, vl, tr, ur, vr;
+				Object* ol;
+				Object* orr;
+
+				if (this->left->triangles.size() > 0) {
+					hitLeft = this->left->intersect(ray, ol, tl, ul, vl);
+				}
+				if (this->right->triangles.size() > 0) {
+					hitRight = this->right->intersect(ray, orr, tr, ur, vr);
+				}
+
+				if (hitLeft && hitRight) {
+					if (tl < tr) {
+						t = tl;
+						u = ul;
+						v = vl;
+						o = ol;
+					}
+					else {
+						t = tr;
+						u = ur;
+						v = vr;
+						o = orr;
+					}
+				}
+				else if (hitLeft) {
+					t = tl;
+					u = ul;
+					v = vl;
+					o = ol;
+				}
+				else {
+					t = tr;
+					u = ur;
+					v = vr;
+					o = orr;
+				}
+				
 				return hitLeft || hitRight;
 			}
 			else {

@@ -31,7 +31,7 @@ void BoundingBox::expand(Vec3 v)
 	}
 }
 
-int BoundingBox::longestDim()
+int BoundingBox::largestDim()
 {
 	float longest = 0;
 	int dim = 0;
