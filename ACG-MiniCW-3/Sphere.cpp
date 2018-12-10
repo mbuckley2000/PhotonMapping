@@ -22,17 +22,11 @@ bool Sphere::rayIntersects(Ray & ray, Object*& hitObject, float& t, float& u, fl
 	if (value > 0) {
 		//Two solutions exists
 		//Calc t
-		float rootVal = sqrtf(value);
-		//Solutions for t are part1 +- rootVal. We only want the smaller solution.
-		float t1 = part1 + rootVal;
-		float t2 = part1 - rootVal;
+		const float rootVal = sqrtf(value);
 
-		if (t2 < t1) {
-			t = t2;
-		}
-		else {
-			t = t1;
-		}
+		//Solutions for t are part1 +- rootVal. We only want the smaller solution.
+		//rootval must be positive as it is the result of sqrt
+		t = part1 - rootVal;
 
 		return true;
 	}

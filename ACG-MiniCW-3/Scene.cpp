@@ -6,6 +6,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include "BRDF.h"
+#include "Triangle.h"
 #include <thread>
 
 # define M_PI           3.14159265358979323846  /* pi */
@@ -39,7 +40,7 @@ void Scene::tracerThread(int threadID, int numThreads) {
 //Returns colour
 Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 	const bool SHADOWING = false;
-	const bool PMAP = true;
+	const bool PMAP = false;
 
 	Vec3 colour = Vec3(0, 0, 0);
 
@@ -47,20 +48,35 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 	Object* hitObj = NULL;
 
 	if (ray->intersectsWith(*this, hitObj, t, u, v)) {
+
 		//We have a hit
-		const Vec3 intersectionPoint = ray->position + (t * ray->direction);
+		const Vec3 normalisedRayDir = ray->direction.normalized();
+		const Vec3 intersectionPoint = ray->position + (t * normalisedRayDir);
+		Material* material = &(hitObj->material);
+		Vec3 hitNormal;
 
-		if (hitObj->material.refractive && depth < maxDepth) {
-			ray->position = intersectionPoint;
-					
-			Ray refractiveRay = Ray(intersectionPoint, refractVector(ray->direction.normalized(), hitObj->getNormalAt(intersectionPoint).normalized(), hitObj->material.indexOfRefraction));
-			Ray reflectiveRay = Ray(intersectionPoint, reflectVector(-ray->direction.normalized(), hitObj->getNormalAt(intersectionPoint).normalized()));
-			
-			refractiveRay.position += EPSILON * refractiveRay.direction;
-			reflectiveRay.position += EPSILON * reflectiveRay.direction;
+		//Get surface normal
+		if (typeid(*hitObj) == typeid(Triangle)) {
+			hitNormal = ((Triangle*)hitObj)->getNormalAt(u, v); //Triangles use barycentric coordinated to interpolate vertex normals
+		} else {
+			hitNormal = hitObj->getNormalAt(intersectionPoint);
+		}
 
-			Vec3 refractiveComponent = hitObj->material.refractiveness * this->traceRay(&refractiveRay, depth + 1, maxDepth);
-			Vec3 reflectiveComponent = hitObj->material.reflectiveness * this->traceRay(&reflectiveRay, depth + 1, maxDepth);
+		if (material->refractive && depth < maxDepth) {
+			Vec3 refractiveComponent(0,0,0);
+			Vec3 reflectiveComponent(0,0,0);
+
+			if (material->reflectiveness > 0) {
+				Ray reflectiveRay = Ray(intersectionPoint, reflectVector(-normalisedRayDir, hitNormal));
+				reflectiveRay.position += EPSILON * reflectiveRay.direction;
+				reflectiveComponent = material->reflectiveness * this->traceRay(&reflectiveRay, depth + 1, maxDepth);
+			}
+
+			if (material->refractiveness > 0) {
+				Ray refractiveRay = Ray(intersectionPoint, refractVector(normalisedRayDir, hitNormal, material->indexOfRefraction));
+				refractiveRay.position += EPSILON * refractiveRay.direction;
+				refractiveComponent = material->refractiveness * this->traceRay(&refractiveRay, depth + 1, maxDepth);
+			}
 
 			return (refractiveComponent + reflectiveComponent);
 		}
@@ -86,17 +102,22 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 		}
 
 		//BRDF
-		const Vec3 lightVector = -light->vectorTo(intersectionPoint);
+		const Vec3 lightVector = -light->vectorTo(intersectionPoint).normalized();
 		const Vec3 viewVector = (ray->position - intersectionPoint).normalized();
 
-		//colour = our_getBDRF(lightVector, viewVector, hitObj->getNormalAt(intersectionPoint), hitObj->material.brdf);
+		if (typeid(*hitObj) == typeid(Box)) {
+			//
+		}
+		else {
+			colour = our_getBDRF(lightVector, viewVector, hitNormal, material->brdf);
+		}
 
 		//Photon mapping
 		if (PMAP) {
 			const int num_photons = 100;
 			auto photons = this->photonMap->findNearestNeighbours(intersectionPoint, num_photons); //Priority queue
 
-			const float radiusSquared = (photons.top()->position - intersectionPoint).squaredNorm(); //photons.top()->squaredDistFromSearchPoint;
+			const float radiusSquared = (photons.top()->position - intersectionPoint).squaredNorm();
 
 			Vec3 pmap_contrib = Vec3(0, 0, 0);
 
@@ -119,10 +140,8 @@ void Scene::render()
 	const int lines = camera->imagePlane.resolution(0);
 
 	this->lineDone = (bool*)malloc(sizeof(bool) * lines);
-	this->lineDrawn = (bool*)malloc(sizeof(bool) * lines);
 	for (int i = 0; i < lines; i++) {
 		lineDone[i] = false;
-		lineDrawn[i] = false;
 	}
 
 	std::vector<std::thread> threads;

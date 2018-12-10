@@ -43,9 +43,9 @@ bool Triangle::rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v
 		}
 	}
 
-	float detInv = 1 / det;
+	const float detInv = 1 / det;
 
-	const Vec3 tVec = ray.position - this->vertices.col(0);
+	const Vec3 tVec = ray.position - this->getVertex(0);
 
 	u = tVec.dot(pVec) * detInv;
 
@@ -77,12 +77,60 @@ Vec3 Triangle::getNormalAt(Vec3 position)
 	float u, v, w;
 	barycentric(position, this->getVertex(0), this->getVertex(1), this->getVertex(2), u, v, w);
 
-	return (this->vertexNormals[0] * u + this->vertexNormals[1] * v + this->vertexNormals[2] * w);
+	return this->getNormalAt(u, v);
 }
 
 Vec3 Triangle::getVertex(int vertex)
 {
-	return Vec3(this->vertices.col(vertex));
+	return this->vertices.col(vertex);
+}
+
+Box Triangle::getBoundingBox()
+{
+	if (!this->boundingBoxCalculated) {
+		Box b;
+		b.minimum << INFINITY, INFINITY, INFINITY;
+		b.maximum << -INFINITY, -INFINITY, -INFINITY;
+
+		for (int i = 0; i < 3; i++) {
+			b.expand(this->getVertex(i));
+		}
+
+		this->boundingBoxCalculated = true;
+		this->boundingBox = b;
+		return b;
+	}
+
+	return this->boundingBox;
+}
+
+Vec3 Triangle::getMidpoint()
+{
+	if (!this->midPointCalculated) {
+		Vec3 midPoint(0,0,0);
+
+		for (int i = 0; i < 3; i++) {
+			midPoint += this->getVertex(i);
+		}
+
+		midPoint /= 3;
+
+		this->midPointCalculated = true;
+		this->midPoint = midPoint;
+		return midPoint;
+	}
+
+	return this->midPoint;
+}
+
+Vec3 Triangle::getNormalAt(float u, float v)
+{
+	if (this->vertexNormals.size() != 3) {
+		return this->normal;
+	}
+
+	const float w = 1 - u - v;
+	return (this->vertexNormals[0] * u + this->vertexNormals[1] * v + this->vertexNormals[2] * w).normalized();
 }
 
 Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2)

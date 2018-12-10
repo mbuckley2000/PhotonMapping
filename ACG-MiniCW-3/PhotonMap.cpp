@@ -156,11 +156,3 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 		}
 	}
 }
-
-bool pointSphereIntersection(Vec3 point, Vec3 centre, float radius) {
-	return ((point - centre).squaredNorm() < pow(radius, 2));
-}
-
-std::vector<Photon*> searchMap(Vec3 position, float maxDistance) {
-	return std::vector<Photon*>();
-}

@@ -3,6 +3,9 @@
 #include "Vectors.h"
 #include "Triangle.h"
 #include "Box.h"
+#include "TriangleKDNode.h"
+
+class TriangleKDNode;
 
 class Mesh :
 	public Object
@@ -22,7 +25,9 @@ public:
 	Vec3 getNormalAt(Vec3 position);
 
 	void calculateTriangles();
+	void calculateBoundingBox();
 
+	void buildKDTree();
 
 	Mesh(std::string filename);
 	virtual ~Mesh();
@@ -31,7 +36,7 @@ public:
 private:
 	bool trianglesCalculated;
 	bool boundingBoxCalculated;
-	void calculateBoundingBox();
 	Box boundingBox;
+	TriangleKDNode* kdTree;
 };
 

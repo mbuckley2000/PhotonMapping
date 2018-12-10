@@ -15,49 +15,48 @@ void Mesh::loadFromFile(std::string filename)
 	igl::readOBJ(filename, this->vertices, texCoords, this->vertexNormals, this->faces, faceTex, this->faceVns);
 }
 
+//bool Mesh::rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v)
+//{
+//	float tt, uu, vv;
+//	Object* oo = NULL;
+//	if (!this->boundingBox.rayIntersects(ray, oo, tt, uu, vv)) {
+//		return false;
+//	}
+//
+//	float currentT, currentU, currentV;
+//	float closestT = INFINITY, closestU, closestV;
+//	Triangle* closestTriangle = NULL;
+//
+//	Object* p = NULL;
+//
+//	for (auto const& triangle : this->triangles) {
+//		if (triangle->rayIntersects(ray, p, currentT, currentU, currentV)) {
+//			if (currentT < closestT) {
+//				closestT = currentT;
+//				closestU = currentU;
+//				closestV = currentV;
+//				closestTriangle = triangle;
+//			}
+//		}
+//	}
+//	
+//	if (closestTriangle != NULL) {
+//		t = closestT;
+//		u = closestU;
+//		v = closestV;
+//		o = closestTriangle;
+//		return true;
+//	}
+//
+//	return false;
+//}
+
 bool Mesh::rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v)
 {
-	if (!this->trianglesCalculated) {
-		this->calculateTriangles();
-	}
-
-	if (!this->boundingBoxCalculated) {
-		this->calculateBoundingBox();
-	}
-
-	float tt, uu, vv;
-	Object* oo = NULL;
-	if (!this->boundingBox.rayIntersects(ray, oo, tt, uu, vv)) {
-		return false;
-	}
-
-	float currentT, currentU, currentV;
-	float closestT = INFINITY, closestU, closestV;
-	Triangle* closestTriangle = NULL;
-
-	Object* p = NULL;
-
-	for (auto const& triangle : this->triangles) {
-		if (triangle->rayIntersects(ray, p, currentT, currentU, currentV)) {
-			if (currentT < closestT) {
-				closestT = currentT;
-				closestU = currentU;
-				closestV = currentV;
-				closestTriangle = triangle;
-			}
-		}
-	}
-	
-	if (closestTriangle != NULL) {
-		t = closestT;
-		u = closestU;
-		v = closestV;
-		o = closestTriangle;
-		return true;
-	}
-
-	return false;
+	return this->kdTree->intersect(ray, o, t, u, v);
 }
+
+
 
 Vec3 Mesh::getNormalAt(Vec3 position)
 {
@@ -124,4 +123,11 @@ void Mesh::calculateBoundingBox()
 		}
 	}
 	this->boundingBoxCalculated = true;
+}
+
+void Mesh::buildKDTree()
+{
+	TriangleKDNode tree;
+	this->kdTree = tree.balance(this->triangles, 0);
+
 }

@@ -1,10 +1,7 @@
 #pragma once
 #include "Photon.h"
 #include <queue>
-typedef struct BoundingBox {
-	Vec3 maximum;
-	Vec3 minimum;
-} BoundingBox;
+#include "BoundingBox.h"
 
 // Comparator for selecting the photon with the maximum distance from the specified point
 class MaximumDistanceCompare

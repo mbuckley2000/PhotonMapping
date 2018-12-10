@@ -33,7 +33,6 @@ private:
 	void mapperThread(int threadID, int numPhotons, Vec3 photonFlux);
 
 	std::mutex photonMappingMutex;
-
 };
 
 

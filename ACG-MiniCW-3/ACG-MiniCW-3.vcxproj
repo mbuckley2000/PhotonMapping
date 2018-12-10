@@ -157,7 +157,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="Box.h" />
+    <ClInclude Include="BRDF.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="DirectionalLight.h" />
@@ -177,11 +179,14 @@
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="SquareLight.h" />
     <ClInclude Include="Triangle.h" />
+    <ClInclude Include="TriangleKDNode.h" />
     <ClInclude Include="Vectors.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ACG-MiniCW-3.cpp" />
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Box.cpp" />
+    <ClCompile Include="BRDF.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="DirectionalLight.cpp" />
@@ -202,6 +207,7 @@
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="SquareLight.cpp" />
     <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="TriangleKDNode.cpp" />
     <ClCompile Include="Vectors.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -24,7 +24,6 @@ public:
 
 private:
 	bool* lineDone;
-	bool* lineDrawn;
 	Vec3 traceRay(Ray* ray, int depth, int maxDepth);
 	void tracerThread(int threadID, int numThreads);
 };

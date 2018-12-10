@@ -218,11 +218,8 @@ void PhotonTree::locatePhotons(Vec3 position, float squaredMaxDistance, int node
 	const bool hasRightChild = (rightChild != NULL);
 
 	//Get squared distance of current node from search position
-	//currentNode->squaredDistFromSearchPoint = (position - currentNode->position).squaredNorm();
-
 	const float squaredDistFromSearchPoint = (position - currentNode->position).squaredNorm();
 
-	//float newSquaredMaxDistance;
 
 	if (squaredDistFromSearchPoint < squaredMaxDistance) {
 		//Add to max heap h
@@ -257,7 +254,6 @@ void PhotonTree::locatePhotons(Vec3 position, float squaredMaxDistance, int node
 			}
 		}
 		else if (hasRightChild) {
-
 			//Go right
 			this->locatePhotons(position, squaredMaxDistance, this->getRightChildID(nodeID), queue, numNeighbours);
 			if (squaredHyperPlaneDistance < squaredMaxDistance && hasLeftChild) {
