@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "PhotonTree.h"
 #include "BRDF.h"
+#include "Triangle.h"
 
 PhotonMap::PhotonMap(Scene * scene)
 {
@@ -27,7 +28,7 @@ void PhotonMap::mapperThread(int threadID, int numPhotons, Vec3 photonFlux) {
 
 	for (int i = 0; i < numPhotons; i++) {
 		Ray photonRay = this->generatePhotonRay(this->scene->light, &generator, &distributiona);
-		tracePhoton(&photonRay, photonFlux, &photons, &generator, &distributionb);
+		tracePhoton(&photonRay, photonFlux, &photons, &generator, &distributionb, 0);
 	}
 
 	//Mutex lock
@@ -51,7 +52,7 @@ void PhotonMap::mapPhotons(int numPhotons)
 	std::vector<std::thread> threads;
 
 	std::cout << "Kicking off photon mapping threadss" << std::endl;
-	const int numThreads = 12;
+	const int numThreads = 8;
 	for (int i = 0; i < numThreads; i++) {
 		threads.push_back(std::thread(&PhotonMap::mapperThread, this, i, numPhotons/numThreads, photonFlux));
 	}
@@ -102,7 +103,7 @@ void storePhoton(Vec3 position, Vec3 flux, Vec3 incomingAngle, std::vector<Photo
 	photons->push_back(p);
 }
 
-void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution)
+void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution, int depth)
 {
 	//Trace the photon ray
 	float t, u, v;
@@ -110,7 +111,16 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 
 	if (photonRay->intersectsWith(*(this->scene), collisionObj, t, u, v)) {
 		const Vec3 intersectionPoint = photonRay->position + (photonRay->direction * t);
+		const Vec3 incomingVector = photonRay->direction.normalized();
 		
+		if (depth > 0) {
+			std::cout << "";
+		}
+
+		Vec3 objNormal = collisionObj->getNormalAt(intersectionPoint);
+
+		const Vec3 reflectedVector = reflectVector(-incomingVector, objNormal).normalized();
+
 		//Calculate changes
 		float r = (*distribution)(*generator); //Ideally use an evenly distributed function such as drand48() on linux. Open source so we can reimplement
 
@@ -119,15 +129,12 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 		const float dProb = collisionObj->material.diffuseProbability;
 
 		bool reflected = false;
-		bool refracted = false;
-		//remove
-		
-		const Vec3 reflectedVector = reflectVector(-photonRay->direction, collisionObj->getNormalAt(intersectionPoint)).normalized();
+		bool refracted = false;	
 
 		if (r < dProb) {
 			//Diffusely reflected
-			storePhoton(intersectionPoint, flux, photonRay->direction, photons);
-			flux = flux.cwiseProduct(our_getBDRF(photonRay->direction.normalized(), reflectedVector, collisionObj->getNormalAt(intersectionPoint), collisionObj->material.brdf));
+			storePhoton(intersectionPoint, flux, incomingVector, photons);
+			flux = flux.cwiseProduct(our_getBDRF(incomingVector, reflectedVector, objNormal, collisionObj->material.brdf).normalized());
 			reflected = true;
 		} else if (r < dProb + sProb) { //Between dProb and sProb
 			//Specular
@@ -139,20 +146,20 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 			}
 		} else {
 			//Absorbed
-			storePhoton(intersectionPoint, flux, photonRay->direction, photons);
+			storePhoton(intersectionPoint, flux, incomingVector, photons);
 		}
 
 		if (reflected) {
 			//Reflect and trace new ray
 			photonRay->position = intersectionPoint;
-			photonRay->direction = reflectedVector;
+			photonRay->direction = -reflectedVector;
 			photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
-			this->tracePhoton(photonRay, flux, photons, generator, distribution);
+			this->tracePhoton(photonRay, flux, photons, generator, distribution, depth+1);
 		} else if (refracted) {
 			photonRay->position = intersectionPoint;
-			photonRay->direction = refractVector(photonRay->direction, collisionObj->getNormalAt(intersectionPoint), collisionObj->material.indexOfRefraction);
+			photonRay->direction = refractVector(incomingVector, collisionObj->getNormalAt(intersectionPoint), collisionObj->material.indexOfRefraction);
 			photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
-			this->tracePhoton(photonRay, flux, photons, generator, distribution);
+			this->tracePhoton(photonRay, flux, photons, generator, distribution, depth+1);
 		}
 	}
 }

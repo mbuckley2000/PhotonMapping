@@ -5,7 +5,7 @@
 class Material
 {
 public:
-	float diffuseProbability = 0.9;
+	float diffuseProbability = 0.6;
 	float specularProbability = 0.3;
 	float specularPower = 32;
 	float indexOfRefraction = 1;

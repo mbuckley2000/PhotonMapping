@@ -30,7 +30,7 @@ void Scene::tracerThread(int threadID, int numThreads) {
 
 			Ray ray(pixelWorldPos, pixelWorldPos - this->camera->focus); //Pos, dir
 
-			const float dimmingFactor = 10;
+			const float dimmingFactor = 5;
 			(*this->target)(y, x) = toRGB(this->traceRay(&ray, 0, 4) * dimmingFactor);
 		}
 		this->lineDone[x] = true;
@@ -40,6 +40,7 @@ void Scene::tracerThread(int threadID, int numThreads) {
 //Returns colour
 Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 	const bool SHADOWING = false;
+	const bool DIRECTILLUMINATION = true;
 	const bool PMAP = true;
 
 	Vec3 colour = Vec3(0, 0, 0);
@@ -53,15 +54,9 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 		const Vec3 normalisedRayDir = ray->direction.normalized();
 		const Vec3 intersectionPoint = ray->position + (t * normalisedRayDir);
 		Material* material = &(hitObj->material);
-		Vec3 hitNormal;
+		Vec3 hitNormal = hitObj->getNormalAt(intersectionPoint);
 
-		//Get surface normal
-		if (typeid(*hitObj) == typeid(Triangle)) {
-			hitNormal = ((Triangle*)hitObj)->getNormalAt(u, v); //Triangles use barycentric coordinated to interpolate vertex normals
-		} else {
-			hitNormal = hitObj->getNormalAt(intersectionPoint);
-		}
-
+		//Reflections & refractions
 		if (material->refractive && depth < maxDepth) {
 			Vec3 refractiveComponent(0,0,0);
 			Vec3 reflectiveComponent(0,0,0);
@@ -105,20 +100,22 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 		const Vec3 lightVector = -light->vectorTo(intersectionPoint).normalized();
 		const Vec3 viewVector = (ray->position - intersectionPoint).normalized();
 
-		if (typeid(*hitObj) == typeid(Box)) {
-			std::cerr << "Trying to render a bounding box" << std::endl;
-		}
+		if (DIRECTILLUMINATION) {
+			if (typeid(*hitObj) == typeid(Box)) {
+				std::cerr << "Trying to render a Box (Bounding box?)" << std::endl;
+			}
 
-		if (hitObj->material.brdf != nullptr) {
-			colour = our_getBDRF(lightVector, viewVector, hitNormal, material->brdf);
-		}
-		else {
-			std::cerr << "NULLPTR for material BRDF." << std::endl;
+			if (hitObj->material.brdf != nullptr) {
+				colour = our_getBDRF(lightVector, viewVector, hitNormal, material->brdf);
+			}
+			else {
+				std::cerr << "NULLPTR for material BRDF." << std::endl;
+			}
 		}
 
 		//Photon mapping
 		if (PMAP) {
-			const int num_photons = 200;
+			const int num_photons = 400;
 			auto photons = this->photonMap->findNearestNeighbours(intersectionPoint, num_photons); //Priority queue
 
 			const float radiusSquared = (photons.top()->position - intersectionPoint).squaredNorm();
@@ -126,11 +123,13 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 			Vec3 pmap_contrib = Vec3(0, 0, 0);
 
 			while (photons.size()) {
-				pmap_contrib += photons.top()->flux;
+				const Vec3 inVec = photons.top()->incomingAngle;
+				const Vec3 photonBRDF = our_getBDRF(-inVec, viewVector, hitNormal, material->brdf);
+				pmap_contrib += photons.top()->flux.cwiseProduct(photonBRDF);
 				photons.pop();
 			}
 
-			const float multiplier = 1 / (M_PI * radiusSquared);
+			const float multiplier = 20 / (M_PI * radiusSquared);
 			pmap_contrib *= multiplier;
 			colour += pmap_contrib;
 		}
@@ -150,7 +149,7 @@ void Scene::render()
 
 	std::vector<std::thread> threads;
 
-	const int numThreads = 12;
+	const int numThreads = 8;
 	for (int i = 0; i < numThreads; i++) {
 		threads.push_back(std::thread(&Scene::tracerThread, this, i, numThreads));
 	}
@@ -167,7 +166,10 @@ void Scene::render()
 
 		//render
 		cv::imshow("Render output", *this->target); // Show our image inside it.
-		cv::waitKey(1);
+		const int sKey = 115;
+		if (cv::waitKey(1) == sKey) {
+			cv::imwrite("C:/Users/mbuck/Desktop/output.png", *this->target);
+		}
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 

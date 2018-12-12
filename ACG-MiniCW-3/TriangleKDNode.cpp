@@ -24,6 +24,8 @@ struct CompareDimensions {
 
 	bool operator () (Triangle* i, Triangle* j) {
 		return (i->getMidpoint()(dimension) < j->getMidpoint()(dimension));
+
+		//return (i->getBoundingBox().maximum(dimension) < j->getBoundingBox().minimum(dimension));
 	}
 
 	int dimension;

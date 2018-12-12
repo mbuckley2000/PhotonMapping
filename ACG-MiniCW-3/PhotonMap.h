@@ -29,7 +29,7 @@ private:
 	Scene* scene;
 
 	Ray generatePhotonRay(Light * light, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution);
-	void tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution);
+	void tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution, int depth);
 	void mapperThread(int threadID, int numPhotons, Vec3 photonFlux);
 
 	std::mutex photonMappingMutex;

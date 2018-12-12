@@ -11,7 +11,6 @@ public:
 	virtual ~Triangle();
 
 	bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v);
-	Vec3 getNormalAt(float u, float v);
 	Vec3 getNormalAt(Vec3 position);
 	Vec3 getVertex(int vertex);
 	Box getBoundingBox();

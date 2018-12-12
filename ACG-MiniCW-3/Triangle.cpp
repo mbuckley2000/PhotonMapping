@@ -77,7 +77,7 @@ Vec3 Triangle::getNormalAt(Vec3 position)
 	float u, v, w;
 	barycentric(position, this->getVertex(0), this->getVertex(1), this->getVertex(2), u, v, w);
 
-	return this->getNormalAt(u, v);
+	return (this->vertexNormals[0] * u + this->vertexNormals[1] * v + this->vertexNormals[2] * w).normalized();
 }
 
 Vec3 Triangle::getVertex(int vertex)
@@ -121,16 +121,6 @@ Vec3 Triangle::getMidpoint()
 	}
 
 	return this->midPoint;
-}
-
-Vec3 Triangle::getNormalAt(float u, float v)
-{
-	if (this->vertexNormals.size() != 3) {
-		return this->normal;
-	}
-
-	const float w = 1 - u - v;
-	return (this->vertexNormals[0] * u + this->vertexNormals[1] * v + this->vertexNormals[2] * w).normalized();
 }
 
 Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2)
