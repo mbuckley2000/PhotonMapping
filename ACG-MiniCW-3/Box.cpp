@@ -4,8 +4,8 @@
 
 Box::Box()
 {
-	this->minimum << 0, 0, 0;
-	this->maximum << 0, 0, 0;
+	this->minimum << INFINITY, INFINITY, INFINITY;
+	this->maximum << -INFINITY, -INFINITY, -INFINITY;
 }
 
 

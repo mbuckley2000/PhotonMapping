@@ -1,7 +1,10 @@
 #pragma once
 #include "Photon.h"
 #include <queue>
-#include "BoundingBox.h"
+#include "Box.h"
+
+class Object;
+class Box;
 
 // Comparator for selecting the photon with the maximum distance from the specified point
 class MaximumDistanceCompare
@@ -44,6 +47,7 @@ private:
 	int getRightChildID(int nodeId);
 	int getLeftChildID(int nodeId);
 	void locatePhotons(Vec3 position, float squaredMaxDistance, int nodeID, std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare>* queue, int numNeighbours);
+	Box getBoundingBox(std::vector<Photon*> photons);
 
 	void buildBalancedTree(std::vector<Photon*> photons, int index);
 };

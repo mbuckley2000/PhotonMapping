@@ -3,6 +3,7 @@
 #include "Ray.h"
 #include "Vectors.h"
 
+class Object;
 class Ray;
 
 class Box :

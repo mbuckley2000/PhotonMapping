@@ -8,8 +8,14 @@
 #include "Scene.h"
 #include <random>
 #include <mutex>
+
+
+class Object;
+class Box;
+class PhotonTree;
 class Scene;
 class Ray;
+class MaximumDistanceCompare;
 
 class PhotonMap
 {

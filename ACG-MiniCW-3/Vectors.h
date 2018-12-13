@@ -2,9 +2,13 @@
 #include "pch.h"
 #include <Eigen/Dense>
 
-typedef Eigen::Vector3f Vec3;
-typedef Eigen::Vector2i Vec2;
-typedef Eigen::Matrix3f Mat3;
+/*
+	Typedefs
+*/
+typedef Eigen::Vector3f Vec3; //3D float vector
+typedef Eigen::Vector2i Vec2; //2D int vector
+typedef Eigen::Matrix3f Mat3; //3x3 float matrix
+
 
 Vec3 reflectVector(Vec3 vec, Vec3 normal);
 Vec3 refractVector(Vec3 incomingVector, Vec3 surfaceNormal, float indexOfRefraction);

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Sphere.h"
 
+
 //https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
 bool Sphere::rayIntersects(Ray & ray, Object*& hitObject, float& t, float& u, float& v)
 {

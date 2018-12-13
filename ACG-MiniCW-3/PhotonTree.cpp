@@ -1,22 +1,6 @@
 #include "pch.h"
 #include "PhotonTree.h"
 
-//Returns the largest dimension (0, 1, 2) of a box
-int largestBoxDim(BoundingBox* b) {
-	float largestSize = -INFINITY;
-	int largestDim = NULL;
-
-	for (int d = 0; d < 3; d++) {
-		const float size = b->maximum(d) - b->minimum(d);
-		if (size > largestSize) {
-			largestSize = size;
-			largestDim = d;
-		}
-	}
-
-	return largestDim;
-}
-
 // Comparator for sorting photons based on a given dimension of their position vector
 struct CompareDimensions {
 	CompareDimensions(int dimension) {
@@ -31,25 +15,12 @@ struct CompareDimensions {
 };
 
 
-BoundingBox getBoundingBox(std::vector<Photon*> photons)
+Box PhotonTree::getBoundingBox(std::vector<Photon*> photons)
 {
-	BoundingBox b;
-
-	b.maximum = Vec3(-INFINITY, -INFINITY, -INFINITY);
-	b.minimum = Vec3(INFINITY, INFINITY, INFINITY);
+	Box b;
 
 	for (auto const& photonPtr : photons) {
-		const Vec3* point = &(photonPtr->position);
-
-		for (int d = 0; d < 3; d++) {
-			if ((*point)(d) < b.minimum(d)) {
-				b.minimum(d) = (*point)(d);
-			}
-
-			if ((*point)(d) > b.maximum(d)) {
-				b.maximum(d) = (*point)(d);
-			}
-		}
+		b.expand(photonPtr->position);
 	}
 
 	return b;
@@ -75,12 +46,12 @@ void PhotonTree::buildBalancedTree(std::vector<Photon*> photons, int nodeID)
 {
 	assert(nodeID != 0);
 
-	BoundingBox boundingBox = getBoundingBox(photons); //Bounds of all photon positions
+	Box boundingBox = getBoundingBox(photons); //Bounds of all photon positions
 
 	const int medianArrayPos = photons.size() / 2;
 
 	//Sort points by size in largest dimension
-	const int largestDim = largestBoxDim(&boundingBox);
+	const int largestDim = boundingBox.largestDim();
 
 
 

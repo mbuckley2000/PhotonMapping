@@ -2,6 +2,7 @@
 #include "Object.h"
 #include "Vectors.h"
 #include "Box.h"
+
 class Triangle :
 	public Object
 {
