@@ -5,7 +5,6 @@
 #include "Ray.h"
 #include "Object.h"
 
-
 class TriangleKDNode
 {
 public:
@@ -15,8 +14,12 @@ public:
 	std::vector<Triangle*> triangles;
 
 	TriangleKDNode();
+	TriangleKDNode(std::vector<Triangle*> triangles);
 	~TriangleKDNode();
 
-	TriangleKDNode* balance(std::vector<Triangle*> triangles, int depth);
 	bool intersect(Ray & ray, Object*& o, float & t, float& u, float& v);
+
+private:
+	void balance();
+	void expandBoundingBox();
 };

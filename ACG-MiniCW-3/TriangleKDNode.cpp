@@ -3,20 +3,28 @@
 
 /*
 KD tree for storing HBV for meshes
-Code from https://blog.frogslayer.com/kd-trees-for-faster-ray-tracing-with-triangles/
+Code based on https://blog.frogslayer.com/kd-trees-for-faster-ray-tracing-with-triangles/
 */
 
-
-TriangleKDNode::TriangleKDNode()
+//Construct with an empty vector of triangles for a leaf
+TriangleKDNode::TriangleKDNode() : TriangleKDNode(std::vector<Triangle*>())
 {
 }
 
+TriangleKDNode::TriangleKDNode(std::vector<Triangle*> triangles)
+{
+	this->left = nullptr;
+	this->right = nullptr;
+	this->boundingBox = Box();
+	this->triangles = triangles;
+	this->balance();
+}
 
 TriangleKDNode::~TriangleKDNode()
 {
 }
 
-// Comparator for sorting photons based on a given dimension of their position vector
+// Comparator for sorting triangles based on their midpoint in the given dimension
 struct CompareDimensions {
 	CompareDimensions(int dimension) {
 		this->dimension = dimension;
@@ -24,8 +32,6 @@ struct CompareDimensions {
 
 	bool operator () (Triangle* i, Triangle* j) {
 		return (i->getMidpoint()(dimension) < j->getMidpoint()(dimension));
-
-		//return (i->getBoundingBox().maximum(dimension) < j->getBoundingBox().minimum(dimension));
 	}
 
 	int dimension;
@@ -43,128 +49,53 @@ std::vector<Triangle*> sliceVec(int startPos, int endPos, std::vector<Triangle*>
 	return out;
 }
 
-TriangleKDNode * TriangleKDNode::balance(std::vector<Triangle*> triangles, int depth)
+
+void TriangleKDNode::balance()
 {
-	TriangleKDNode* node = new TriangleKDNode();
-	node->triangles = triangles;
-	node->left = NULL;
-	node->right = NULL;
-	node->boundingBox = Box();
+	const int maxTrianglesPerLeaf = 10; //Must be 1 or more
+	assert(maxTrianglesPerLeaf >= 1);
 
 	if (triangles.size() == 0) {
-		return node;
+		return;
 	}
 
-	if (triangles.size() == 1) {
-		node->boundingBox = triangles[0]->getBoundingBox();
-		node->left = new TriangleKDNode();
-		node->right = new TriangleKDNode();
-		node->left->triangles = std::vector<Triangle*>();
-		node->right->triangles = std::vector<Triangle*>();
-		return node;
+	this->expandBoundingBox();
+
+	if (triangles.size() <= maxTrianglesPerLeaf) {
+		//Finish the tree with empty nodes as leaves
+		this->left = new TriangleKDNode();
+		this->right = new TriangleKDNode();
+		return;
 	}
-
-	//Get bounding box surrounding all triangles
-	node->boundingBox = triangles[0]->getBoundingBox();
-
-	for (int i = 1; i < triangles.size(); i++) {
-		node->boundingBox.expand(triangles[i]->getBoundingBox());
-	}
-
-
-	if (triangles.size() < 10) {
-		node->left = new TriangleKDNode();
-		node->right = new TriangleKDNode();
-		node->left->triangles = std::vector<Triangle*>();
-		node->right->triangles = std::vector<Triangle*>();
-		return node;
-	}
-
-	Vec3 midPoint(0, 0, 0);
-	for (int i = 0; i < triangles.size(); i++) {
-		midPoint += triangles[i]->getMidpoint();
-	}
-	midPoint /= triangles.size();
-
-
-
+	
 	//Sort the array just until middle (median) posision is correct.
-	//All elems preceding median are less than it, and all following median are greater than it.
+	//All elements preceding median are less than it, and all following median are greater than it.
 	//Much faster than sort() with same eventual outcome (almost 2x speed)
-	const int medianArrayPos = triangles.size() / 2;
-	const int largestDim = node->boundingBox.largestDim();
+	const int medianArrayPos = this->triangles.size() / 2;
+	const int largestDim = this->boundingBox.largestDim();
 	std::nth_element(triangles.begin(), triangles.begin() + medianArrayPos, triangles.end(), CompareDimensions(largestDim));
 
-	//if (triangles.size() > 1) { WE KNOW IT IS >1 already
-		//Left tree becomes all photons less than median
-	node->left = balance(sliceVec(0, medianArrayPos, triangles), depth + 1);
+	//Left tree becomes all photons less than median
+	this->left = new TriangleKDNode(sliceVec(0, medianArrayPos, triangles));
 
 	if (medianArrayPos + 1 < triangles.size()) {
 		//Right tree becomes all photons greater than median
-		node->right = balance(sliceVec(medianArrayPos + 1, triangles.size() - 1, triangles), depth + 1);
-	}
-	else {
-		node->right = NULL;
-	}
-	//}
-
-
-
-
-	//std::vector<Triangle*> leftTriangles;
-	//std::vector<Triangle*> rightTriangles;
-	//const int axis = node->boundingBox.largestDim();
-	//for (int i = 0; i < triangles.size(); i++) {
-	//	//Split triangles based on the median midpoint in the longest axis
-	//	midPoint[axis] >= triangles[i]->getMidpoint()[axis] ? rightTriangles.push_back(triangles[i]) : leftTriangles.push_back(triangles[i]);
-	//}
-
-	//if (leftTriangles.size() == 0 && rightTriangles.size() > 0) {
-	//	leftTriangles = rightTriangles;
-	//}
-	//else if (rightTriangles.size() == 0 && leftTriangles.size() > 0) {
-	//	rightTriangles = leftTriangles;
-	//}
-
-
-
-
-	//node->left = balance(leftTriangles, depth + 1);
-	//node->right = balance(rightTriangles, depth + 1);
-
-	
-	////If 50% of triangles match, don't subdivide anymore
-	//int matches = 0;
-	//for (int i = 0; i < leftTriangles.size(); i++) {
-	//	for (int j = 0; j < rightTriangles.size(); j++) {
-	//		if (leftTriangles[i] == rightTriangles[j]) {
-	//			matches++;
-	//		}
-	//	}
-	//}
-
-
-
-//Recurse down left and right sides
-	/*if (leftTriangles.size() > 10) {
-		node->left = balance(leftTriangles, depth + 1);
-	}
-	else {
-		node->left = new TriangleKDNode();
-		node->left->triangles = std::vector<Triangle*>();
+		this->right = new TriangleKDNode(sliceVec(medianArrayPos + 1, triangles.size() - 1, triangles));
 	}
 
-	if (rightTriangles.size() > 10) {
-		node->right = balance(rightTriangles, depth + 1);
-	}
-	else {
-		node->right = new TriangleKDNode();
-		node->right->triangles = std::vector<Triangle*>();
-	}*/
-	
-	return node;
+	return;
 }
 
+void TriangleKDNode::expandBoundingBox()
+{
+	if (this->triangles.size() > 0) {
+		this->boundingBox = triangles[0]->getBoundingBox();
+
+		for (int i = 1; i < triangles.size(); i++) {
+			this->boundingBox.expand(triangles[i]->getBoundingBox());
+		}
+	}
+}
 
 bool TriangleKDNode::intersect(Ray & ray, Object*& o, float & t, float& u, float& v)
 {

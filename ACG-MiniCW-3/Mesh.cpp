@@ -130,7 +130,5 @@ void Mesh::calculateBoundingBox()
 
 void Mesh::buildKDTree()
 {
-	TriangleKDNode tree;
-	this->kdTree = tree.balance(this->triangles, 0);
-
+	this->kdTree = new TriangleKDNode(this->triangles);
 }
