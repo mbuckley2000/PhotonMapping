@@ -20,7 +20,7 @@ class MaximumDistanceCompare;
 class PhotonMap
 {
 public:
-	PhotonMap(Scene* scene);
+	PhotonMap(Scene* scene, bool caustics, bool aim, Vec3 aimAt);
 	virtual ~PhotonMap();
 
 	void mapPhotons(int numPhotons);
@@ -34,8 +34,13 @@ private:
 	PhotonTree* tree;
 	Scene* scene;
 
+	bool caustics;
+
+	Vec3 target;
+	bool aiming;
+
 	Ray generatePhotonRay(Light * light, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution);
-	void tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution, int depth);
+	void tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution, bool caustic);
 	void mapperThread(int threadID, int numPhotons, Vec3 photonFlux);
 
 	std::mutex photonMappingMutex;

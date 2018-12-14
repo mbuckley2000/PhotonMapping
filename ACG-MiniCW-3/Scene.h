@@ -28,6 +28,7 @@ public:
 	Light* light;
 	cv::Mat_<cv::Vec3b>* target;
 	PhotonMap* photonMap;
+	PhotonMap* causticMap;
 
 	/**
 	 * Renders the scene to the render target
@@ -55,8 +56,11 @@ private:
 	 * Calculates the colour of the photon mapping component for the given context
 	 * Uses the scene's pre-calculated photon map
 	 * Increasing numberOfPhotons with smoothen the result 
+	 * Setting filter to true will apply a cone filter to sharpen caustics
+	 * FilterConst affects the sharpness of the filtered caustic
+	 * map is the pointer to the desired photon map
 	 */
-	Vec3 getPMComponent(IntersectionContext context, int numberOfPhotons);
+	Vec3 getPMComponent(IntersectionContext context, int numberOfPhotons, PhotonMap* map, bool filter, float filterConst);
 
 	/**
 	 * Calculates the colour of the direct illumination component for the given context

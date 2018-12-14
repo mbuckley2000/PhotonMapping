@@ -8,9 +8,12 @@
 #include "BRDF.h"
 #include "Triangle.h"
 
-PhotonMap::PhotonMap(Scene * scene)
+PhotonMap::PhotonMap(Scene * scene, bool caustics, bool aim, Vec3 aimAt)
 {
 	this->scene = scene;
+	this->caustics = caustics;
+	this->aiming = aim;
+	this->target = aimAt;
 }
 
 PhotonMap::~PhotonMap()
@@ -79,18 +82,28 @@ std::priority_queue<Photon*, std::vector<Photon*>, MaximumDistanceCompare> Photo
 
 Ray PhotonMap::generatePhotonRay(Light * light, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution)
 {
+	const Vec3 pos = light->getPosition();
+	Vec3 direction;
+
 	//TODO Need to implement direction masking to prevent wasted photons
+	if (this->aiming) {
+		const float mult = 0.2;
+		const Vec3 randVec((*distribution)(*generator)*mult, (*distribution)(*generator)*mult, (*distribution)(*generator)*mult);
+		direction = ((this->target - pos).normalized() + randVec).normalized();
+	}
+	else {
+		float x, y, z;
+		do {
+			x = (*distribution)(*generator);
+			y = (*distribution)(*generator);
+			z = (*distribution)(*generator);
+		} while (pow(x, 2) + pow(y, 2) + pow(z, 2) > 1);
 
-	float x, y, z;
-	do {
-		x = (*distribution)(*generator);
-		y = (*distribution)(*generator);
-		z = (*distribution)(*generator);
-	} while (pow(x, 2) + pow(y, 2) + pow(z, 2) > 1);
+		direction = Vec3(x, y, z).normalized();
+	}
+	
 
-	const Vec3 direction = Vec3(x, y, z).normalized();
-
-	return Ray(light->getPosition(), direction);
+	return Ray(pos, direction);
 }
 
 void storePhoton(Vec3 position, Vec3 flux, Vec3 incomingAngle, std::vector<Photon>* photons)
@@ -103,7 +116,7 @@ void storePhoton(Vec3 position, Vec3 flux, Vec3 incomingAngle, std::vector<Photo
 	photons->push_back(p);
 }
 
-void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution, int depth)
+void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution, bool caustic)
 {
 	//Trace the photon ray
 	float t;
@@ -112,10 +125,6 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 	if (photonRay->intersectsWith(*(this->scene), collisionObj, t)) {
 		const Vec3 intersectionPoint = photonRay->position + (photonRay->direction * t);
 		const Vec3 incomingVector = photonRay->direction.normalized();
-		
-		if (depth > 0) {
-			std::cout << "";
-		}
 
 		Vec3 objNormal = collisionObj->getNormalAt(intersectionPoint);
 
@@ -133,7 +142,9 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 
 		if (r < dProb) {
 			//Diffusely reflected
-			storePhoton(intersectionPoint, flux, incomingVector, photons);
+			if (caustic || !this->caustics) { //Only store caustics in a caustic map
+				storePhoton(intersectionPoint, flux, incomingVector, photons);
+			}
 			flux = flux.cwiseProduct(our_getBDRF(incomingVector, reflectedVector, objNormal, collisionObj->material.brdf).normalized());
 			reflected = true;
 		} else if (r < dProb + sProb) { //Between dProb and sProb
@@ -146,7 +157,9 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 			}
 		} else {
 			//Absorbed
-			storePhoton(intersectionPoint, flux, incomingVector, photons);
+			if (caustic || !this->caustics) {//Only store caustics in a caustic map
+				storePhoton(intersectionPoint, flux, incomingVector, photons);
+			}
 		}
 
 		if (reflected) {
@@ -154,12 +167,14 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 			photonRay->position = intersectionPoint;
 			photonRay->direction = -reflectedVector;
 			photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
-			this->tracePhoton(photonRay, flux, photons, generator, distribution, depth+1);
+			this->tracePhoton(photonRay, flux, photons, generator, distribution, caustic);
 		} else if (refracted) {
-			photonRay->position = intersectionPoint;
-			photonRay->direction = refractVector(incomingVector, collisionObj->getNormalAt(intersectionPoint), collisionObj->material.indexOfRefraction);
-			photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
-			this->tracePhoton(photonRay, flux, photons, generator, distribution, depth+1);
+			if (this->caustics) {
+				photonRay->position = intersectionPoint;
+				photonRay->direction = refractVector(incomingVector, collisionObj->getNormalAt(intersectionPoint), collisionObj->material.indexOfRefraction);
+				photonRay->position += 0.00001 * photonRay->direction; //To avoid rounding errors
+				this->tracePhoton(photonRay, flux, photons, generator, distribution, true);
+			}
 		}
 	}
 }

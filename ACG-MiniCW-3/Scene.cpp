@@ -41,9 +41,9 @@ void Scene::tracerThread(int threadID, int numThreads) {
 	}
 }
 
-Vec3 Scene::getPMComponent(IntersectionContext context, int numberOfPhotons)
+Vec3 Scene::getPMComponent(IntersectionContext context, int numberOfPhotons, PhotonMap* map, bool filter, float filterConst)
 {
-	auto photons = this->photonMap->findNearestNeighbours(*context.intersectionPoint, numberOfPhotons); //Priority queue
+	auto photons = map->findNearestNeighbours(*context.intersectionPoint, numberOfPhotons); //Priority queue
 
 	const float radiusSquared = (photons.top()->position - *context.intersectionPoint).squaredNorm();
 
@@ -52,7 +52,13 @@ Vec3 Scene::getPMComponent(IntersectionContext context, int numberOfPhotons)
 	while (photons.size()) {
 		const Vec3 inVec = photons.top()->incomingAngle;
 		const Vec3 photonBRDF = our_getBDRF(-inVec, *context.outboundVector, *context.surfaceNormal, context.material->brdf);
-		pmapContrib += photons.top()->flux.cwiseProduct(photonBRDF);
+		Vec3 thisContrib = photons.top()->flux.cwiseProduct(photonBRDF);
+		const float thisDist = (photons.top()->position - *context.intersectionPoint).squaredNorm();
+		if (filter) {
+			//Apply cone filtering
+			thisContrib *= (1 - (thisDist / (radiusSquared*filterConst)));
+		}
+		pmapContrib += thisContrib;
 		photons.pop();
 	}
 
@@ -98,8 +104,8 @@ Vec3 Scene::getTransmissiveComponent(IntersectionContext context, int depth, int
 //Returns colour
 Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 	const bool SHADOWING = false;
-	const bool DIRECTILLUMINATION = true;
-	const bool PMAP = false;
+	const bool DIRECTILLUMINATION = false;
+	const bool PMAP = true;
 
 	Vec3 colour = Vec3(0, 0, 0);
 
@@ -137,7 +143,10 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 		}
 
 		if (PMAP) {
-			colour += this->getPMComponent(context, 100);
+			//Indirect illumination
+			colour += 30*this->getPMComponent(context, 100, this->photonMap, false, NULL);
+			//Caustics
+			colour += 10 * this->getPMComponent(context, 100, this->causticMap, true, 1);
 		}
 
 	}
