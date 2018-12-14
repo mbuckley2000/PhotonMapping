@@ -12,11 +12,10 @@ public:
 	Vec3 position;
 	Vec3 direction;
 
-	bool intersectsWith(Object& object, Object*& hitObj, float& t, float& u, float& v);
+	bool intersectsWith(Object& object, Object*& hitObj, float& t);
 	bool intersectsWith(Scene & scene, float& t);
-	bool intersectsWith(Scene & scene, Object*& closestObject, float & t, float & u, float & v);
+	bool intersectsWith(Scene & scene, Object*& closestObject, float & t);
 
 	Ray(Vec3 position, Vec3 direction);
-	virtual ~Ray();
 };
 

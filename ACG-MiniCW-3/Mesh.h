@@ -20,9 +20,6 @@ public:
 	std::vector<Triangle*> triangles;
 
 	void loadFromFile(std::string filename);
-	bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v);
-
-	Vec3 getNormalAt(Vec3 position);
 
 	void calculateTriangles();
 	void calculateBoundingBox();
@@ -33,10 +30,24 @@ public:
 	virtual ~Mesh();
 
 
+	// Inherited via Object
+	/**
+	 * Mesh normals should never be retrieved.
+	 * Get the normal of the triangle instead
+	 */
+	virtual Vec3 getNormalAt(Vec3 position) override;
+
+	/**
+	 * A pointer to the triangle will be placed in Object*& o
+	 */
+	virtual bool rayIntersects(Ray & ray, Object *& o, float & t) override;
+
 private:
 	bool trianglesCalculated;
 	bool boundingBoxCalculated;
 	Box boundingBox;
 	TriangleKDNode* kdTree;
+
+	
 };
 

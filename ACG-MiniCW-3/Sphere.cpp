@@ -3,7 +3,7 @@
 
 
 //https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
-bool Sphere::rayIntersects(Ray & ray, Object*& hitObject, float& t, float& u, float& v)
+bool Sphere::rayIntersects(Ray & ray, Object*& hitObject, float& t)
 {
 	const Vec3 direction = ray.direction.normalized();
 	const Vec3 origin = ray.position;

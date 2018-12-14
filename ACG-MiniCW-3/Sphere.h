@@ -10,9 +10,9 @@ public:
 	Sphere(float radius);
 	virtual ~Sphere();
 
-	bool rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v);
+	virtual bool rayIntersects(Ray & ray, Object*& o, float& t) override;
 
-	Vec3 getNormalAt(Vec3 position);
+	virtual Vec3 getNormalAt(Vec3 position) override;
 
 private:
 	float radius;

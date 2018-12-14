@@ -1,11 +1,13 @@
 #include "pch.h"
 #include "Triangle.h"
 
-//Copied from https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-// Compute barycentric coordinates (u, v, w) for
-// point p with respect to triangle (a, b, c)
-void barycentric(Vec3 p, Vec3 a, Vec3 b, Vec3 c, float &u, float &v, float &w)
+
+void Triangle::getBarycentricCoordinates(Vec3 p, float &u, float &v, float &w)
 {
+	//Copied from https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
+	const Vec3 a = this->getVertex(0);
+	const Vec3 b = this->getVertex(1);
+	const Vec3 c = this->getVertex(2);
 	Vec3 v0 = b - a, v1 = c - a, v2 = p - a;
 	float d00 = v0.dot(v0);
 	float d01 = v0.dot(v1);
@@ -18,12 +20,18 @@ void barycentric(Vec3 p, Vec3 a, Vec3 b, Vec3 c, float &u, float &v, float &w)
 	u = 1.0f - v - w;
 }
 
-
-//https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-bool Triangle::rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v)
+bool Triangle::rayIntersects(Ray & ray, Object*& o, float& t)
 {
+
+	/**
+	 * Möller–Trumbore intersection algorithm
+	 * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+	 */
+
 	#define EPSILON 0.0000001
 	#define CULLING false
+
+	float u, v;
 
 	const Vec3 pVec = ray.direction.cross(this->edge2);
 
@@ -75,7 +83,7 @@ Vec3 Triangle::getNormalAt(Vec3 position)
 	}
 
 	float u, v, w;
-	barycentric(position, this->getVertex(0), this->getVertex(1), this->getVertex(2), u, v, w);
+	this->getBarycentricCoordinates(position, u, v, w);
 
 	return (this->vertexNormals[0] * u + this->vertexNormals[1] * v + this->vertexNormals[2] * w).normalized();
 }
@@ -153,8 +161,3 @@ Triangle::Triangle(Mat3 vertices, Mat3 vertexNormals)
 		this->vertexNormals.push_back(vertexNormals.col(i));
 	}
 }
-
-Triangle::~Triangle()
-{
-}
-

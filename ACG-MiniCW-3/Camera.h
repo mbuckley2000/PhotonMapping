@@ -18,7 +18,11 @@ public:
 
 	float focalLength;
 
+	/**
+	 * Calculates the world space position vector of a pixel on the camera's projection screen
+	 */
 	Vec3 calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY);
+
 	ImagePlane imagePlane;
 	Camera();
 	virtual ~Camera();

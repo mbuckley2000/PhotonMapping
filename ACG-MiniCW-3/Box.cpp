@@ -1,13 +1,11 @@
 #include "pch.h"
 #include "Box.h"
 
-
 Box::Box()
 {
 	this->minimum << INFINITY, INFINITY, INFINITY;
 	this->maximum << -INFINITY, -INFINITY, -INFINITY;
 }
-
 
 Box::~Box()
 {
@@ -15,17 +13,17 @@ Box::~Box()
 
 Vec3 Box::getNormalAt(Vec3 position)
 {
-	return Vec3(1, 1, 1);
+	return Vec3();
 }
 
-
-/*
-	Fast Ray-Box Intersection
-	by Andrew Woo
-	from "Graphics Gems", Academic Press, 1990
-*/
-bool Box::rayIntersects(Ray & ray, Object*& o, float & t, float & u, float & v)
+bool Box::rayIntersects(Ray & ray, Object*& o, float & t)
 {
+	/*
+		Fast Ray-Box Intersection
+		by Andrew Woo
+		from "Graphics Gems", Academic Press, 1990
+	*/
+
 	#define NUMDIM	3
 	#define RIGHT	0
 	#define LEFT	1
@@ -110,7 +108,6 @@ bool Box::rayIntersects(Ray & ray, Object*& o, float & t, float & u, float & v)
 	o = this;
 	return true;				/* ray hits box */
 }
-
 
 void Box::expand(Box b)
 {

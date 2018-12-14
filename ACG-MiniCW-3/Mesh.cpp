@@ -5,8 +5,6 @@
 
 using namespace Eigen;
 
-#define KDTREES true
-
 void Mesh::loadFromFile(std::string filename)
 {
 	//igl::readOBJ(filename, this->vertices, this->faces);
@@ -18,52 +16,9 @@ void Mesh::loadFromFile(std::string filename)
 }
 
 
-bool Mesh::rayIntersects(Ray & ray, Object*& o, float& t, float& u, float& v)
+bool Mesh::rayIntersects(Ray & ray, Object*& o, float& t)
 {
-	if (KDTREES) {
-		return this->kdTree->intersect(ray, o, t, u, v);
-	}
-	else {
-		float tt, uu, vv;
-		Object* oo = NULL;
-		if (!this->boundingBox.rayIntersects(ray, oo, tt, uu, vv)) {
-			return false;
-		}
-
-		float currentT, currentU, currentV;
-		float closestT = INFINITY, closestU, closestV;
-		Triangle* closestTriangle = NULL;
-
-		Object* p = NULL;
-
-		for (auto const& triangle : this->triangles) {
-			if (triangle->rayIntersects(ray, p, currentT, currentU, currentV)) {
-				if (currentT < closestT) {
-					closestT = currentT;
-					closestU = currentU;
-					closestV = currentV;
-					closestTriangle = triangle;
-				}
-			}
-		}
-
-		if (closestTriangle != NULL) {
-			t = closestT;
-			u = closestU;
-			v = closestV;
-			o = closestTriangle;
-			return true;
-		}
-
-		return false;
-	}
-}
-
-
-
-Vec3 Mesh::getNormalAt(Vec3 position)
-{
-	return Vec3();
+	return this->kdTree->intersect(ray, o, t);
 }
 
 void Mesh::calculateTriangles()
@@ -101,6 +56,11 @@ Mesh::Mesh(std::string filename)
 
 Mesh::~Mesh()
 {
+}
+
+Vec3 Mesh::getNormalAt(Vec3 position)
+{
+	return Vec3();
 }
 
 void Mesh::calculateBoundingBox()

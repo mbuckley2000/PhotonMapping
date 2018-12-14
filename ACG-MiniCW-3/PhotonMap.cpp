@@ -106,10 +106,10 @@ void storePhoton(Vec3 position, Vec3 flux, Vec3 incomingAngle, std::vector<Photo
 void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* photons, std::default_random_engine* generator, std::uniform_real_distribution<float>* distribution, int depth)
 {
 	//Trace the photon ray
-	float t, u, v;
+	float t;
 	Object* collisionObj;
 
-	if (photonRay->intersectsWith(*(this->scene), collisionObj, t, u, v)) {
+	if (photonRay->intersectsWith(*(this->scene), collisionObj, t)) {
 		const Vec3 intersectionPoint = photonRay->position + (photonRay->direction * t);
 		const Vec3 incomingVector = photonRay->direction.normalized();
 		

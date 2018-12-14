@@ -20,10 +20,6 @@ TriangleKDNode::TriangleKDNode(std::vector<Triangle*> triangles)
 	this->balance();
 }
 
-TriangleKDNode::~TriangleKDNode()
-{
-}
-
 // Comparator for sorting triangles based on their midpoint in the given dimension
 struct CompareDimensions {
 	CompareDimensions(int dimension) {
@@ -97,56 +93,48 @@ void TriangleKDNode::expandBoundingBox()
 	}
 }
 
-bool TriangleKDNode::intersect(Ray & ray, Object*& o, float & t, float& u, float& v)
+bool TriangleKDNode::intersect(Ray & ray, Object*& o, float & t)
 {
 	//Check to see if the ray intersects the bounding box of the given node
 
-	float boxt, boxu, boxv;
-	Object* boxo;
+	float boxT;
+	Object* boxO;
 
-	if (this->boundingBox.rayIntersects(ray, boxo, boxt, boxu, boxv)) {
-		bool hit_tri = false;
+	if (this->boundingBox.rayIntersects(ray, boxO, boxT)) {
+		bool triangleHit = false;
 
 		if (this->left || this->right) {
 			if (this->left->triangles.size() > 0 || this->right->triangles.size() > 0) {
 				bool hitLeft = false;
 				bool hitRight = false;
 
-				float tl, ul, vl, tr, ur, vr;
+				float tl, tr;
 				Object* ol;
 				Object* orr;
 
 				if (this->left->triangles.size() > 0) {
-					hitLeft = this->left->intersect(ray, ol, tl, ul, vl);
+					hitLeft = this->left->intersect(ray, ol, tl);
 				}
 				if (this->right->triangles.size() > 0) {
-					hitRight = this->right->intersect(ray, orr, tr, ur, vr);
+					hitRight = this->right->intersect(ray, orr, tr);
 				}
 
 				if (hitLeft && hitRight) {
 					if (tl < tr) {
 						t = tl;
-						u = ul;
-						v = vl;
 						o = ol;
 					}
 					else {
 						t = tr;
-						u = ur;
-						v = vr;
 						o = orr;
 					}
 				}
 				else if (hitLeft) {
 					t = tl;
-					u = ul;
-					v = vl;
 					o = ol;
 				}
 				else {
 					t = tr;
-					u = ur;
-					v = vr;
 					o = orr;
 				}
 				
@@ -156,22 +144,20 @@ bool TriangleKDNode::intersect(Ray & ray, Object*& o, float & t, float& u, float
 				//We're at a leaf
 				for (int i = 0; i < this->triangles.size(); i++) {
 					float minT = INFINITY;
-					float tempT, tempU, tempV;
+					float tempT;
 					Object* tempO;
 					//Check for hit
-					if (this->triangles[i]->rayIntersects(ray, tempO, tempT, tempU, tempV)) {
-						hit_tri = true;
+					if (this->triangles[i]->rayIntersects(ray, tempO, tempT)) {
+						triangleHit = true;
 						if (tempT < minT) {
 							minT = tempT;
 							t = tempT;
-							u = tempU;
-							v = tempV;
 							o = tempO;
 						}
 					}
 				}
 
-				return hit_tri;
+				return triangleHit;
 			}
 		}
 	}

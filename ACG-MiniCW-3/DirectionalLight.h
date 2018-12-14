@@ -10,17 +10,19 @@ public:
 
 	DirectionalLight(Vec3 direction, Vec3 colour);
 
+	/**
+	 * Constant for directional lights
+	 */
 	Vec3 vectorTo(Vec3 position);
 
-	virtual ~DirectionalLight();
-
-
-
-	// Inherited via Light
+	/**
+	 * Always infinite for directional lights
+	 */
 	virtual float getDistanceFrom(Vec3 position) override;
 
-
-	// Inherited via Light
+	/**
+	 * Meaningless for directional lights
+	 */
 	virtual Vec3 getPosition() override;
 
 };

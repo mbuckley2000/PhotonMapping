@@ -1,15 +1,16 @@
 #include "pch.h"
 #include "SquareLight.h"
 #include "Common.h"
+
 SquareLight::SquareLight(Vec3 colour, Vec3 position, Vec3 normal, float size) : Light(colour)
 {
 	this->position = position;
 	this->normal = normal.normalized();
 	this->size = size;
-}
 
-SquareLight::~SquareLight()
-{
+	const float halfSize = this->size / 2;
+
+	this->distribution = std::uniform_real_distribution<float>(-halfSize, halfSize);
 }
 
 Vec3 SquareLight::vectorTo(Vec3 position)
@@ -29,11 +30,9 @@ float SquareLight::getDistanceFrom(Vec3 position)
 Vec3 SquareLight::getPosition()
 {
 	//Get random point in the square
-	//Direction vector of the plane
-	const float halfSize = this->size / 2;
-	const float xRand = random(-halfSize, halfSize);
-	const float zRand = random(-halfSize, halfSize);
-
+	const float xRand = this->distribution(this->generator);
+	const float zRand = this->distribution(this->generator);
+	
 	Vec3 point = this->position;
 	point(0) += xRand;
 	point(2) += zRand;

@@ -6,7 +6,6 @@ class PointLight :
 {
 public:
 	PointLight(Vec3 position, Vec3 colour);
-	virtual ~PointLight();
 
 	Vec3 position;
 	Vec3 colour;
@@ -16,7 +15,6 @@ public:
 
 	// Inherited via Light
 	virtual float getDistanceFrom(Vec3 position) override;
-
 
 	// Inherited via Light
 	virtual Vec3 getPosition() override;

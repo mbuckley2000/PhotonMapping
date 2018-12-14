@@ -11,11 +11,6 @@ Vec3 DirectionalLight::vectorTo(Vec3 position)
 	return this->direction;
 }
 
-
-DirectionalLight::~DirectionalLight()
-{
-}
-
 float DirectionalLight::getDistanceFrom(Vec3 position)
 {
 	return INFINITY;

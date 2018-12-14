@@ -12,6 +12,10 @@
 # define M_PI           3.14159265358979323846  /* pi */
 # define EPSILON 0.00001
 
+/**
+ * Converts a colour from RGB(0,1) colour space to RGB(0,255)
+ * Any values above 255 will be capped at 255
+ */
 cv::Vec3b toRGB(Vec3 v) {
 	for (int i = 0; i < 3; i++) {
 		v(i) = max(v(i), 0);
@@ -37,102 +41,105 @@ void Scene::tracerThread(int threadID, int numThreads) {
 	}
 }
 
+Vec3 Scene::getPMComponent(IntersectionContext context, int numberOfPhotons)
+{
+	auto photons = this->photonMap->findNearestNeighbours(*context.intersectionPoint, numberOfPhotons); //Priority queue
+
+	const float radiusSquared = (photons.top()->position - *context.intersectionPoint).squaredNorm();
+
+	Vec3 pmapContrib = Vec3(0, 0, 0);
+
+	while (photons.size()) {
+		const Vec3 inVec = photons.top()->incomingAngle;
+		const Vec3 photonBRDF = our_getBDRF(-inVec, *context.outboundVector, *context.surfaceNormal, context.material->brdf);
+		pmapContrib += photons.top()->flux.cwiseProduct(photonBRDF);
+		photons.pop();
+	}
+
+	const float multiplier = 1 / (M_PI * radiusSquared);
+
+	return pmapContrib * multiplier;
+}
+
+Vec3 Scene::getDIComponent(IntersectionContext context)
+{
+	Vec3 colour = Vec3(0, 0, 0);
+
+	if ((*context.material).brdf != nullptr) {
+		colour = our_getBDRF(*context.inboundVector, *context.outboundVector, *context.surfaceNormal, context.material->brdf);
+	}
+	else {
+		std::cerr << "NULLPTR for material BRDF." << std::endl;
+	}
+
+	return Vec3(colour);
+}
+
+Vec3 Scene::getTransmissiveComponent(IntersectionContext context, int depth, int maxDepth)
+{
+	Vec3 refractiveComponent(0, 0, 0);
+	Vec3 reflectiveComponent(0, 0, 0);
+
+	if (context.material->reflectiveness > 0) {
+		Ray reflectiveRay = Ray(*context.intersectionPoint, reflectVector(-*context.inboundVector, *context.surfaceNormal));
+		reflectiveRay.position += EPSILON * reflectiveRay.direction;
+		reflectiveComponent = context.material->reflectiveness * this->traceRay(&reflectiveRay, depth + 1, maxDepth);
+	}
+
+	if (context.material->refractiveness > 0) {
+		Ray refractiveRay = Ray(*context.intersectionPoint, refractVector(*context.inboundVector, *context.surfaceNormal, context.material->indexOfRefraction));
+		refractiveRay.position += EPSILON * refractiveRay.direction;
+		refractiveComponent = context.material->refractiveness * this->traceRay(&refractiveRay, depth + 1, maxDepth);
+	}
+
+	return reflectiveComponent + refractiveComponent;
+}
+
 //Returns colour
 Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 	const bool SHADOWING = false;
 	const bool DIRECTILLUMINATION = true;
-	const bool PMAP = true;
+	const bool PMAP = false;
 
 	Vec3 colour = Vec3(0, 0, 0);
 
-	float t, u, v;
-	Object* hitObj = NULL;
+	float t;
+	Object* hitObj = nullptr;
 
-	if (ray->intersectsWith(*this, hitObj, t, u, v)) {
+	if (ray->intersectsWith(*this, hitObj, t)) {
+		if (typeid(*hitObj) == typeid(Box)) {
+			std::cerr << "Trying to render a Box (Bounding box?)" << std::endl;
+		}
 
 		//We have a hit
 		const Vec3 normalisedRayDir = ray->direction.normalized();
 		const Vec3 intersectionPoint = ray->position + (t * normalisedRayDir);
 		Material* material = &(hitObj->material);
 		Vec3 hitNormal = hitObj->getNormalAt(intersectionPoint);
+		const Vec3 viewVector = (ray->position - intersectionPoint).normalized();
+
+		IntersectionContext context;
+		context.inboundVector = &normalisedRayDir;
+		context.intersectionPoint = &intersectionPoint;
+		context.material = material;
+		context.surfaceNormal = &hitNormal;
+		context.outboundVector = &viewVector;
 
 		//Reflections & refractions
 		if (material->refractive && depth < maxDepth) {
-			Vec3 refractiveComponent(0,0,0);
-			Vec3 reflectiveComponent(0,0,0);
-
-			if (material->reflectiveness > 0) {
-				Ray reflectiveRay = Ray(intersectionPoint, reflectVector(-normalisedRayDir, hitNormal));
-				reflectiveRay.position += EPSILON * reflectiveRay.direction;
-				reflectiveComponent = material->reflectiveness * this->traceRay(&reflectiveRay, depth + 1, maxDepth);
-			}
-
-			if (material->refractiveness > 0) {
-				Ray refractiveRay = Ray(intersectionPoint, refractVector(normalisedRayDir, hitNormal, material->indexOfRefraction));
-				refractiveRay.position += EPSILON * refractiveRay.direction;
-				refractiveComponent = material->refractiveness * this->traceRay(&refractiveRay, depth + 1, maxDepth);
-			}
-
-			return (refractiveComponent + reflectiveComponent);
+			return this->getTransmissiveComponent(context, depth, maxDepth);
 		}
-
-		bool shadowed = false;
-		int num_rays = 16;
-		int hitCount = 0;
-		if (SHADOWING) {
-			//Check for shadow
-			if (hitObj->shadow) {
-				for (int i = 0; i < num_rays; i++) {
-					Ray shadowTest = Ray(intersectionPoint, -light->vectorTo(intersectionPoint));
-					shadowTest.position = shadowTest.position + (EPSILON * shadowTest.direction);
-					float shadowT;
-					if (shadowTest.intersectsWith(*this, shadowT)) {
-						if (shadowT <= (light->getDistanceFrom(intersectionPoint))) {
-							hitCount++;
-							shadowed = true;
-						}
-					}
-				}
-			}
-		}
-
-		//BRDF
-		const Vec3 lightVector = -light->vectorTo(intersectionPoint).normalized();
-		const Vec3 viewVector = (ray->position - intersectionPoint).normalized();
 
 		if (DIRECTILLUMINATION) {
-			if (typeid(*hitObj) == typeid(Box)) {
-				std::cerr << "Trying to render a Box (Bounding box?)" << std::endl;
-			}
-
-			if (hitObj->material.brdf != nullptr) {
-				colour = our_getBDRF(lightVector, viewVector, hitNormal, material->brdf);
-			}
-			else {
-				std::cerr << "NULLPTR for material BRDF." << std::endl;
-			}
+			const Vec3 lightVector = -light->vectorTo(intersectionPoint).normalized();
+			context.inboundVector = &lightVector;
+			colour += this->getDIComponent(context);
 		}
 
-		//Photon mapping
 		if (PMAP) {
-			const int num_photons = 400;
-			auto photons = this->photonMap->findNearestNeighbours(intersectionPoint, num_photons); //Priority queue
-
-			const float radiusSquared = (photons.top()->position - intersectionPoint).squaredNorm();
-
-			Vec3 pmap_contrib = Vec3(0, 0, 0);
-
-			while (photons.size()) {
-				const Vec3 inVec = photons.top()->incomingAngle;
-				const Vec3 photonBRDF = our_getBDRF(-inVec, viewVector, hitNormal, material->brdf);
-				pmap_contrib += photons.top()->flux.cwiseProduct(photonBRDF);
-				photons.pop();
-			}
-
-			const float multiplier = 20 / (M_PI * radiusSquared);
-			pmap_contrib *= multiplier;
-			colour += pmap_contrib;
+			colour += this->getPMComponent(context, 100);
 		}
+
 	}
 	return colour;
 }

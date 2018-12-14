@@ -33,7 +33,10 @@
 #define BLUE_SCALE (1.66/1500.0)
 #define M_PI	3.1415926535897932384626433832795
 
-
+/*
+ * This is the only function which was written by me. The rest are copied from the MERL database.
+ * https://people.csail.mit.edu/wojciech/BRDFDatabase/code/BRDFRead.cpp
+ */
 Vec3 our_getBDRF(Vec3 incomingAngle, Vec3 outgoingAngle, Vec3 surfaceNormal, double* brdf) {
 	//Imagine a plane at the surface with the surface normal
 	//Project incoming and outgoing vectors onto this plane and calculate the angle between them (Azumith angle)

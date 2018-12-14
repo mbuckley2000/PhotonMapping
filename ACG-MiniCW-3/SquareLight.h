@@ -1,7 +1,12 @@
 #pragma once
 #include "Light.h"
 #include "Vectors.h"
+#include <random>
 
+/**
+ * Square lights must be aligned with the x and z axes
+ * Used to generate soft shadows
+ */
 class SquareLight :
 	public Light
 {
@@ -11,18 +16,24 @@ public:
 	float size;
 
 	SquareLight(Vec3 colour, Vec3 position, Vec3 normal, float size);
-	virtual ~SquareLight();
 
-	// Inherited via Light
+	/**
+	 * Calculated using the last sampled position from getPosition
+	 */
 	virtual Vec3 vectorTo(Vec3 position) override;
 
-	// Inherited via Light
+	/**
+	 * Calculated using the last sampled position from getPosition
+	 */
 	virtual float getDistanceFrom(Vec3 position) override;
 
 private:
 	Vec3 lastPoint;
+	std::default_random_engine generator;
+	std::uniform_real_distribution<float> distribution;
 
-	// Inherited via Light
+	/**
+	 * Returns a randomly sampled position from within the area of the light
+	 */
 	virtual Vec3 getPosition() override;
 };
-
