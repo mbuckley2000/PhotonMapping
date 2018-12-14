@@ -96,7 +96,6 @@ void TriangleKDNode::expandBoundingBox()
 bool TriangleKDNode::intersect(Ray & ray, Object*& o, float & t)
 {
 	//Check to see if the ray intersects the bounding box of the given node
-
 	float boxT;
 	Object* boxO;
 
@@ -104,6 +103,7 @@ bool TriangleKDNode::intersect(Ray & ray, Object*& o, float & t)
 		bool triangleHit = false;
 
 		if (this->left || this->right) {
+			//Intersect with the boxes children until we hit a leaf node
 			if (this->left->triangles.size() > 0 || this->right->triangles.size() > 0) {
 				bool hitLeft = false;
 				bool hitRight = false;
@@ -119,6 +119,7 @@ bool TriangleKDNode::intersect(Ray & ray, Object*& o, float & t)
 					hitRight = this->right->intersect(ray, orr, tr);
 				}
 
+				//Choose whichever is closer
 				if (hitLeft && hitRight) {
 					if (tl < tr) {
 						t = tl;
@@ -142,6 +143,7 @@ bool TriangleKDNode::intersect(Ray & ray, Object*& o, float & t)
 			}
 			else {
 				//We're at a leaf
+				//Check the triangles for intersections
 				for (int i = 0; i < this->triangles.size(); i++) {
 					float minT = INFINITY;
 					float tempT;

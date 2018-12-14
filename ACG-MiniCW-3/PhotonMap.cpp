@@ -28,13 +28,13 @@ void PhotonMap::mapperThread(int threadID, int numPhotons, Vec3 photonFlux) {
 	std::uniform_real_distribution<float> distributiona(-1.0, 1.0);
 	std::uniform_real_distribution<float> distributionb(0.0, 1.0);
 
-
+	//The workload is split betwen threads
 	for (int i = 0; i < numPhotons; i++) {
 		Ray photonRay = this->generatePhotonRay(this->scene->light, &generator, &distributiona);
 		tracePhoton(&photonRay, photonFlux, &photons, &generator, &distributionb, 0);
 	}
 
-	//Mutex lock
+	//Mutex lock to prevent race conditions
 	std::lock_guard<std::mutex> guard(this->photonMappingMutex);
 
 	//Copy to global array
@@ -48,23 +48,26 @@ void PhotonMap::mapperThread(int threadID, int numPhotons, Vec3 photonFlux) {
 
 void PhotonMap::mapPhotons(int numPhotons)
 {
+	//Divide power of light evenly between photons
 	Light* light = this->scene->light;
-
 	const Vec3 photonFlux = light->colour / numPhotons;
 
 	std::vector<std::thread> threads;
 
+	//Split workload between threads
 	std::cout << "Kicking off photon mapping threadss" << std::endl;
 	const int numThreads = 8;
 	for (int i = 0; i < numThreads; i++) {
 		threads.push_back(std::thread(&PhotonMap::mapperThread, this, i, numPhotons/numThreads, photonFlux));
 	}
 
+	//Wait for threads to finish
 	for (int i = 0; i < numThreads; i++) {
 		threads[i].join();
 	}
 	std::cout << "Threads have finished" << std::endl;
 
+	//Build KD Tree
 	std::vector<Photon*> photonPtrs;
 	for (auto& photon : this->photons) {
 		photonPtrs.push_back(&photon);
@@ -85,13 +88,15 @@ Ray PhotonMap::generatePhotonRay(Light * light, std::default_random_engine* gene
 	const Vec3 pos = light->getPosition();
 	Vec3 direction;
 
-	//TODO Need to implement direction masking to prevent wasted photons
 	if (this->aiming) {
+		//In caustic maps, aim at casustic causing objects
 		const float mult = 0.2;
 		const Vec3 randVec((*distribution)(*generator)*mult, (*distribution)(*generator)*mult, (*distribution)(*generator)*mult);
 		direction = ((this->target - pos).normalized() + randVec).normalized();
 	}
 	else {
+		//Monte carlo sampling
+		//Keep the light facing up. Creates a nice bleed effect on the ceilling
 		float x, y, z;
 		do {
 			x = (*distribution)(*generator);
@@ -130,8 +135,8 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 
 		const Vec3 reflectedVector = reflectVector(-incomingVector, objNormal).normalized();
 
-		//Calculate changes
-		float r = (*distribution)(*generator); //Ideally use an evenly distributed function such as drand48() on linux. Open source so we can reimplement
+		//Uniformly distributed random between 0 and 1
+		float r = (*distribution)(*generator);
 
 		//Chance of diffuse and specular reflections is based on material
 		const float sProb = collisionObj->material.specularProbability;
@@ -150,7 +155,7 @@ void PhotonMap::tracePhoton(Ray * photonRay, Vec3 flux, std::vector<Photon>* pho
 		} else if (r < dProb + sProb) { //Between dProb and sProb
 			//Specular
 			r = (*distribution)(*generator);
-			if (r < collisionObj->material.reflectiveness) {
+			if (r < collisionObj->material.reflectiveness) { //reflectiveness + refractiveness = 1
 				reflected = true;
 			} else {
 				refracted = true;

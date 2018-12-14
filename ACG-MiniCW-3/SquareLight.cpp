@@ -15,7 +15,7 @@ SquareLight::SquareLight(Vec3 colour, Vec3 position, Vec3 normal, float size) : 
 
 Vec3 SquareLight::vectorTo(Vec3 position)
 {
-	
+	//Uses last generated point from getPosition()
 	const Vec3 point = this->getPosition();
 	this->lastPoint = point;
 
@@ -24,6 +24,7 @@ Vec3 SquareLight::vectorTo(Vec3 position)
 
 float SquareLight::getDistanceFrom(Vec3 position)
 {
+	//Uses last generated point from getPosition()
 	return (this->lastPoint - position).norm();
 }
 

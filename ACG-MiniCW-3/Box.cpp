@@ -13,6 +13,7 @@ Box::~Box()
 
 Vec3 Box::getNormalAt(Vec3 position)
 {
+	//This should never be called. Boxes are not rendered
 	return Vec3();
 }
 

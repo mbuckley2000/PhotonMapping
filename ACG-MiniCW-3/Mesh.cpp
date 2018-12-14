@@ -7,11 +7,10 @@ using namespace Eigen;
 
 void Mesh::loadFromFile(std::string filename)
 {
-	//igl::readOBJ(filename, this->vertices, this->faces);
-
 	Eigen::Matrix2Xf texCoords;
 	Eigen::MatrixXi faceTex; //   FTC  #F list of face indices into vertex texture coordinates
 	
+	//Read file into our arrays
 	igl::readOBJ(filename, this->vertices, texCoords, this->vertexNormals, this->faces, faceTex, this->faceVns);
 }
 
@@ -23,6 +22,7 @@ bool Mesh::rayIntersects(Ray & ray, Object*& o, float& t)
 
 void Mesh::calculateTriangles()
 {
+	//Turn loaded matrices into a vector of triangle objects
 	this->triangles.empty();
 
 	for (int f = 0; f < this->faces.rows(); f++) {
@@ -38,6 +38,7 @@ void Mesh::calculateTriangles()
 		}
 
 		Triangle* t = new Triangle(vs, vns);
+		//inherit mesh material
 		t->material = this->material;
 
 		this->triangles.push_back(t);

@@ -4,6 +4,7 @@
 
 void Triangle::getBarycentricCoordinates(Vec3 p, float &u, float &v, float &w)
 {
+	//We are basically getting the point p as a weighted sum of the vertices of the triangle
 	//Copied from https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
 	const Vec3 a = this->getVertex(0);
 	const Vec3 b = this->getVertex(1);
@@ -114,6 +115,9 @@ Box Triangle::getBoundingBox()
 
 Vec3 Triangle::getMidpoint()
 {
+	//Uses caching only calculates once
+	//Average the vertices of the triangle to get the midpoint
+
 	if (!this->midPointCalculated) {
 		Vec3 midPoint(0,0,0);
 

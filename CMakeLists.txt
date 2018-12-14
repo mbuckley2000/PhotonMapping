@@ -19,7 +19,6 @@ add_executable(ACG_MiniCW_3
         ACG-MiniCW-3/pch.cpp
         ACG-MiniCW-3/pch.h
         ACG-MiniCW-3/Plane.cpp
-        ACG-MiniCW-3/Plane.h
         ACG-MiniCW-3/Ray.cpp
         ACG-MiniCW-3/Ray.h
         ACG-MiniCW-3/resource.h

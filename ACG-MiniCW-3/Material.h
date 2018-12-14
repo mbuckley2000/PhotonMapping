@@ -7,16 +7,10 @@ class Material
 public:
 	float diffuseProbability = 0.6;
 	float specularProbability = 0.3;
-	float specularPower = 32;
 	float indexOfRefraction = 1;
 	double* brdf = nullptr;
-	bool refractive = false;
-	Vec3 baseColour = Vec3(1, 1, 1);
-	bool usingBRDF = false;
+	bool transmissive = false;
 	float reflectiveness;
 	float refractiveness;
-
-	Material();
-	virtual ~Material();
 };
 

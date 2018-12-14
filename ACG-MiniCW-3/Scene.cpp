@@ -35,7 +35,7 @@ void Scene::tracerThread(int threadID, int numThreads) {
 			Ray ray(pixelWorldPos, pixelWorldPos - this->camera->focus); //Pos, dir
 
 			const float dimmingFactor = 5;
-			(*this->target)(y, x) = toRGB(this->traceRay(&ray, 0, 4) * dimmingFactor);
+			(*this->target)(y, x) = toRGB(this->traceRay(&ray, 0, 100) * dimmingFactor);
 		}
 		this->lineDone[x] = true;
 	}
@@ -144,6 +144,7 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 		Vec3 hitNormal = hitObj->getNormalAt(intersectionPoint);
 		const Vec3 viewVector = (ray->position - intersectionPoint).normalized();
 
+		//Used to pass these variables around
 		IntersectionContext context;
 		context.inboundVector = &normalisedRayDir;
 		context.intersectionPoint = &intersectionPoint;
@@ -152,7 +153,7 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 		context.outboundVector = &viewVector;
 
 		//Reflections & refractions
-		if (material->refractive && depth < maxDepth) {
+		if (material->transmissive && depth < maxDepth) {
 			return this->getTransmissiveComponent(context, depth, maxDepth);
 		}
 
@@ -164,9 +165,9 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 
 		if (PMAP) {
 			//Indirect illumination
-			colour += 20*this->getPMComponent(context, 100, this->photonMap, false, NULL);
+			colour += 10*this->getPMComponent(context, 100, this->photonMap, false, NULL);
 			//Caustics
-			colour += 10 * this->getPMComponent(context, 100, this->causticMap, true, 1);
+			colour += 1 * this->getPMComponent(context, 100, this->causticMap, true, 1);
 		}
 
 	}
@@ -178,6 +179,7 @@ void Scene::render()
 {
 	const int lines = camera->imagePlane.resolution(0);
 
+	//Keep track of completed lines for GUI visualisation
 	this->lineDone = (bool*)malloc(sizeof(bool) * lines);
 	for (int i = 0; i < lines; i++) {
 		lineDone[i] = false;
@@ -185,6 +187,11 @@ void Scene::render()
 
 	std::vector<std::thread> threads;
 
+	//Split workload between threads
+	//Each thread gets it's ID and the number of threads
+	//It starts at col=ID, then increments by num_threads
+	//Interlaced pattern
+	//Spreads work
 	const int numThreads = 8;
 	for (int i = 0; i < numThreads; i++) {
 		threads.push_back(std::thread(&Scene::tracerThread, this, i, numThreads));
@@ -193,6 +200,7 @@ void Scene::render()
 	int count = 0;
 	int smallest = 0;
 
+	//Update gui while rendering
 	while (smallest < lines) {
 		for (int i = smallest; i < lines; i++) {
 			if (lineDone[i] && smallest == i) {
@@ -200,7 +208,7 @@ void Scene::render()
 			}
 		}
 
-		//render
+		//update gui
 		cv::imshow("Render output", *this->target); // Show our image inside it.
 		const int sKey = 115;
 		if (cv::waitKey(1) == sKey) {
@@ -209,7 +217,7 @@ void Scene::render()
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
-
+	//Wait for threads to finish
 	for (int i = 0; i < numThreads; i++) {
 		threads[i].join();
 	}

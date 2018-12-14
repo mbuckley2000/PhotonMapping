@@ -48,9 +48,6 @@
     <ClInclude Include="DirectionalLight.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Plane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Box.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -79,9 +76,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BRDF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BoundingBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TriangleKDNode.h">
@@ -116,9 +110,6 @@
     <ClCompile Include="DirectionalLight.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Plane.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Box.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -137,9 +128,6 @@
     <ClCompile Include="PhotonMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PhotonTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -147,9 +135,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TriangleKDNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BoundingBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

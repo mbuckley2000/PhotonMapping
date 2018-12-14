@@ -3,6 +3,7 @@
 
 Vec3 Camera::calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY)
 {
+	//Get parameters
 	const unsigned int i = pixelX;
 	const unsigned int j = pixelY;
 	const float W = this->imagePlane.worldSize(0);
@@ -17,6 +18,7 @@ Vec3 Camera::calculatePixelWorldPos(unsigned int pixelX, unsigned int pixelY)
 	const Vec3 v = this->right;
 
 	//Formula from Lecture 4
+	//Start at focus, move forward to plane, add / subtract in x and y to get to the pixel
 	const float r = W * (((j - 0.5) / nW) - 0.5);
 	const float b = H * (((i - 0.5) / nH) - 0.5);
 	return( e + (d*-w) - (r*u) + (b*v));
