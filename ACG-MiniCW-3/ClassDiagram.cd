@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Object" Collapsed="true">
+    <Position X="14.25" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAQAAAgAAAAYAAAAAAAAAAAAAAAAABAEAA=</HashCode>
+      <FileName>Object.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="material" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Triangle" Collapsed="true">
+    <Position X="14.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABABABACgAQAgAxAAQACAgAAABABAAEAA=</HashCode>
+      <FileName>Triangle.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Mesh" Collapsed="true">
+    <Position X="11.25" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAIBAAAAAAEAABAAAAAAQQCCBAgQAAAgAQAQIAQAEAA=</HashCode>
+      <FileName>Mesh.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="kdTree" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Box" Collapsed="true">
+    <Position X="13" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAIEAAAAAgAAAAAAAQAAAAAYAAAAAAAAAAAAAEAA=</HashCode>
+      <FileName>Box.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Camera" Collapsed="true">
+    <Position X="9.75" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAACAAAAAAAAgAgAQAAAAAAgAAAAAAAAAAAAAgAggAA=</HashCode>
+      <FileName>Camera.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DirectionalLight" Collapsed="true">
+    <Position X="6.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIQAgAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>DirectionalLight.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Light" Collapsed="true">
+    <Position X="8" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAIAAgAAAAIAAAAAAAAgAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Light.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Material" Collapsed="true">
+    <Position X="16.5" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAABAAEAAAAAAAUAAAAEBABACEABAAAAAAAABA=</HashCode>
+      <FileName>Material.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PhotonMap" Collapsed="true">
+    <Position X="11.5" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AUAAAgCAAAAAAAAAoAAAAMAAgAAAAABAAIAAADAAEAA=</HashCode>
+      <FileName>PhotonMap.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="tree" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="PhotonTree" Collapsed="true">
+    <Position X="11.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAGAEAAIAAAAAAAKQAAAEAAACQIBBBAAEAABACAAk=</HashCode>
+      <FileName>PhotonTree.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PointLight" Collapsed="true">
+    <Position X="8.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAIAAgAAAAIAAAAAAAIAAAAAAAAAAAAAAAIAAAAAA=</HashCode>
+      <FileName>PointLight.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Scene" Collapsed="true">
+    <Position X="11" Y="1" Width="1.5" />
+    <AssociationLine Name="camera" Type="Camera">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.133" Y="0.11" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="photonMap" Type="PhotonMap">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-1.131" Y="0.11" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AABAAAEAAgAAAAAAqAAAAAAEQUIAAAAAIAAAAAQSAAA=</HashCode>
+      <FileName>Scene.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="camera" />
+      <Field Name="light" />
+      <Field Name="photonMap" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Sphere" Collapsed="true">
+    <Position X="16.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAAAAAAAQAQAAAAAAAAAAAAAAAAAAIEAA=</HashCode>
+      <FileName>Sphere.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SquareLight" Collapsed="true">
+    <Position X="7.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAIFAgAAAAIAAAAIAEIAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>SquareLight.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TriangleKDNode" Collapsed="true">
+    <Position X="11.25" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAQCIBAAIAAAgAAACAAAAgAA=</HashCode>
+      <FileName>TriangleKDNode.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

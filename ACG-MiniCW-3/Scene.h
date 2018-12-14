@@ -74,5 +74,12 @@ private:
 	 * Based on the object material
 	 */
 	Vec3 getTransmissiveComponent(IntersectionContext context, int depth, int maxDepth);
+
+	/**
+	 * Calculates the shadow component for the given context
+	 * Sum of randomly sampled shadow rays on an area light
+	 */
+
+	Vec3 getShadowComponent(IntersectionContext context, int numberOfSamples);
 };
 

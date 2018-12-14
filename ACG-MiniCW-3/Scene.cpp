@@ -101,10 +101,30 @@ Vec3 Scene::getTransmissiveComponent(IntersectionContext context, int depth, int
 	return reflectiveComponent + refractiveComponent;
 }
 
+Vec3 Scene::getShadowComponent(IntersectionContext context, int numberOfSamples)
+{
+	bool shadowed = false;
+	int hitCount = 0;
+
+	for (int i = 0; i < numberOfSamples; i++) {
+		Ray shadowTest = Ray(*context.intersectionPoint, -light->vectorTo(*context.intersectionPoint));
+		shadowTest.position = shadowTest.position + (EPSILON * shadowTest.direction);
+		float shadowT;
+		if (shadowTest.intersectsWith(*this, shadowT)) {
+			if (shadowT <= (light->getDistanceFrom(*context.intersectionPoint))) {
+				hitCount++;
+				shadowed = true;
+			}
+		}
+	}
+
+	return Vec3(0.5 * hitCount, 0.5*hitCount, 0.5*hitCount);
+}
+
 //Returns colour
 Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 	const bool SHADOWING = false;
-	const bool DIRECTILLUMINATION = false;
+	const bool DIRECTILLUMINATION = true;
 	const bool PMAP = true;
 
 	Vec3 colour = Vec3(0, 0, 0);
@@ -144,7 +164,7 @@ Vec3 Scene::traceRay(Ray* ray, int depth, int maxDepth) {
 
 		if (PMAP) {
 			//Indirect illumination
-			colour += 30*this->getPMComponent(context, 100, this->photonMap, false, NULL);
+			colour += 20*this->getPMComponent(context, 100, this->photonMap, false, NULL);
 			//Caustics
 			colour += 10 * this->getPMComponent(context, 100, this->causticMap, true, 1);
 		}
