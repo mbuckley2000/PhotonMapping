@@ -2,7 +2,7 @@
 
 ## Description
 
-A path tracing renderer that implements photon mapping for global illumination
+A path tracing renderer that implements photon mapping for global illumination. Read the paper for more information on the theory and implementation.
   
 Written in C++ with Eigen and OpenCV.
   
